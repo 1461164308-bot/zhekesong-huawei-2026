@@ -134,6 +134,18 @@ body, body.dark { background:#dbe8fb !important;background-image:linear-gradient
 .gradio-container [role="option"][aria-selected="true"],.gradio-container [role="option"].selected,.gradio-container .options .item.selected,.gradio-container .options .item.active {
   background:#dbe8ff !important;color:#073c96 !important;font-weight:600 !important;
 }
+/* Settings / accordion surfaces must stay clearly opaque for readability. */
+.gradio-container { --block-background-fill:#ffffff !important;--background-fill-secondary:#f7fafe !important;--panel-background-fill:#ffffff !important; }
+.gradio-container .panel,.gradio-container .form,.gradio-container .accordion,.gradio-container fieldset,
+.gradio-container [data-testid="accordion"],.gradio-container .form-wrap,.gradio-container .styler {
+  background:#ffffff !important;background-image:none !important;opacity:1 !important;
+  border:1px solid #ccd8e8 !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+}
+.gradio-container .label-wrap,.gradio-container .label-wrap > span,.gradio-container summary {
+  background:#ffffff !important;color:#16233f !important;opacity:1 !important;
+}
+#zh-inputs .block,#zh-results .block,#zh-inputs .form,#zh-results .form { background:#ffffff !important;border-color:#d3def0 !important; }
+.gradio-container label > span,.gradio-container label > div > span { color:#23354d !important;opacity:1 !important; }
 #zh-desktop a:focus-visible,.gradio-container button:focus-visible { outline:3px solid #0a59f7 !important;outline-offset:3px; }
 @media(max-width:960px) { .zh-liquid-copy { padding:30px; } .zh-liquid-control { padding:22px; } .zh-liquid-time > span { display:none; } }
 @media(max-width:760px) { .zh-liquid-hero { grid-template-columns:1fr;gap:16px; } .zh-liquid-topbar nav { display:none; } .zh-liquid-copy { padding:28px;border-radius:28px; } .zh-liquid-copy h1 { font-size:33px; } .zh-liquid-control { border-radius:28px; } .zh-liquid-time time { font-size:54px; } .zh-liquid-time > span { display:block; } .zh-liquid-controls { gap:10px; } #zh-inputs,#zh-results { padding:18px !important;border-radius:25px !important; } .gradio-container { padding:16px 12px 24px !important; } .zh-liquid-aurora span { filter:blur(40px); } }
