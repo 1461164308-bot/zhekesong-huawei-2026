@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -38,7 +39,8 @@ class CreationFlowTests(unittest.TestCase):
             ima, model = MockIMA(picture), MockModel()
             model.draft["tags"] = []
             with patch("agent._ima", return_value=ima), patch("agent.LLMClient", return_value=model), patch(
-                    "requests.sessions.Session.request", side_effect=AssertionError("No network")):
+                    "requests.sessions.Session.request", side_effect=AssertionError("No network")), patch.dict(
+                    os.environ, {"LLM_API_KEY": "synthetic-key", "LLM_BASE_URL": "https://synthetic.example/v1"}):
                 idea = agent.run_task(**self.request, phase="plan", style_card=self.card)
                 self.assertEqual(idea["status"], "plan_ready", idea)
                 self.assertEqual([p for p, _ in model.calls], ["extract", "fact_review"])

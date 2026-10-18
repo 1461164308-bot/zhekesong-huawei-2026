@@ -43,6 +43,11 @@ def resolve_api_config(raw: dict | None) -> dict | None:
     return {"base_url": base, "api_key": key, "model": model or DEFAULT_MODEL}
 
 
+def server_api_configured() -> bool:
+    """True only when the deployment itself provides both endpoint and key."""
+    return bool(os.environ.get("LLM_API_KEY", "").strip() and os.environ.get("LLM_BASE_URL", "").strip())
+
+
 class LLMClient:
     _lock = threading.Lock()
     _calls: dict[str, int] = {}

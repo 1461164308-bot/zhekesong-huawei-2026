@@ -17,7 +17,7 @@ import tempfile
 import time
 
 from ima_client import IMAClient, IMAError
-from llm_client import DEFAULT_MODEL, LLMClient, ModelError
+from llm_client import DEFAULT_MODEL, LLMClient, ModelError, server_api_configured
 from policy import (PLATFORM_RULES, SCENE_RULES, draft_units, evidence_facts,
                     normalize, strategy_for, text_violations, validate_inputs)
 from prompts import EXTRACT_PROMPT, COMPOSE_PROMPT, AUDIT_PROMPT, FACT_REVIEW_PROMPT
@@ -72,7 +72,8 @@ def get_connection_status() -> str:
     except Exception:
         message = "**ima 暂未连接** · 请刷新连接状态，或联系部署者核对共享库权限。"
     model = os.environ.get("LLM_MODEL", DEFAULT_MODEL)
-    model_state = f"模型配置就绪（{html.escape(model)}；生成时实际连接）" if os.environ.get("LLM_API_KEY") else "模型尚未配置"
+    model_state = (f"模型配置就绪（{html.escape(model)}；生成时实际连接）" if server_api_configured()
+                   else "未内置模型 API · 请在左侧「00 / 模型 API 设置」填写你自己的服务地址与密钥")
     return message + "  \n" + model_state + " · 允许华为官方商城商品页补充事实，是否读取以本次核验记录为准；图源仍为同型号授权知识库。"
 
 
@@ -250,6 +251,10 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
     if not product or not audience or not scenario or not platform:
         fields = [name for name, value in [("准确产品型号", product), ("目标人群", audience), ("使用场景", scenario), ("发布平台", platform)] if not value]
         return _empty("needs_clarification", "### 请先补充任务\n\n" + "\n".join("- " + x for x in fields))
+    if not api_config and not server_api_configured():
+        return _empty("needs_clarification",
+                      "### 请先配置模型 API\n\n本应用不内置任何密钥。请在页面「00 / 模型 API 设置」填写你自己的 "
+                      "OpenAI 兼容服务地址与密钥并点击「应用自定义 API」，然后再生成。", trace)
     try:
         input_key = request_key({"product": product, "audience": audience, "scenario": scenario,
                                  "platform": platform, "goal": goal, "requirements": requirements})

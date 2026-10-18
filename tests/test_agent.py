@@ -119,7 +119,8 @@ class AgentRegressionTests(unittest.TestCase):
         Image.new("RGB", (16, 12), (42, 122, 105)).save(self.picture)
         self.ima, self.model = MockIMA(self.picture), MockModel()
         self.env = patch.dict(os.environ, {"IMA_OPENAPI_CLIENTID": "synthetic-client-1234", "IMA_OPENAPI_APIKEY": SYNTHETIC_API_KEY,
-                                           "LLM_API_KEY": SYNTHETIC_LLM_KEY, "LLM_MODEL": "synthetic-mock-model", "IMA_SOURCE_MODE": "live"})
+                                           "LLM_API_KEY": SYNTHETIC_LLM_KEY, "LLM_MODEL": "synthetic-mock-model",
+                                           "LLM_BASE_URL": "https://synthetic-model.example/v1", "IMA_SOURCE_MODE": "live"})
         self.env.start()
         self.addCleanup(self.env.stop)
         self.no_network = patch("requests.sessions.Session.request", side_effect=AssertionError("External network is forbidden in this suite"))
@@ -395,6 +396,15 @@ class AgentRegressionTests(unittest.TestCase):
         self.assertIn("14.2", result["copy_text"])
         self.assertTrue(Path(result["export_markdown"]).is_file())
         self.assertTrue(Path(result["export_json"]).is_file())
+
+    def test_missing_api_configuration_asks_before_retrieval_or_model_call(self):
+        with patch("agent.server_api_configured", return_value=False):
+            result = self.run_task()
+        self.assert_not_published(result, "needs_clarification")
+        self.assertIn("模型 API", result["report"])
+        self.assertEqual(self.ima.retrieve_calls, [])
+        self.assertEqual(self.phases(), [])
+        self.model_factory.assert_not_called()
 
     def test_incomplete_task_asks_before_any_retrieval_or_model_call(self):
         result = self.run_task(audience="")

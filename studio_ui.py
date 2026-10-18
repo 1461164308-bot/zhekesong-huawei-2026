@@ -29,6 +29,22 @@ def build_studio(examples, fallback_products, desktop_html):
             refresh = gr.Button("刷新资料状态", size="sm")
         with gr.Row(elem_id="zh-workspace"):
             with gr.Column(scale=4, min_width=310, elem_id="zh-inputs"):
+                with gr.Accordion("00 / 模型 API 设置（首次使用必填）", open=True):
+                    gr.Markdown(
+                        "本应用不内置任何 API 密钥。请填写你自己的 OpenAI 兼容服务地址、密钥与模型名后，"
+                        "点「应用自定义 API」再开始创作。设置仅保存在本次会话：不写磁盘、不回显密钥、不进入报告与导出；"
+                        "接口必须为 HTTPS。"
+                    )
+                    api_base = gr.Textbox(label="服务地址（Base URL）", placeholder="https://api.deepseek.com/v1",
+                                          lines=1, max_length=300)
+                    api_key = gr.Textbox(label="API 密钥", type="password", placeholder="仅本次会话使用",
+                                         lines=1, max_length=400)
+                    api_model = gr.Textbox(label="模型名称（选填）", placeholder="例如 deepseek-chat",
+                                           lines=1, max_length=120)
+                    with gr.Row():
+                        api_save = gr.Button("应用自定义 API", size="sm", variant="primary")
+                        api_reset = gr.Button("清空当前设置", size="sm")
+                    api_notice = gr.Markdown("当前：尚未配置。填写后点「应用自定义 API」。")
                 gr.Markdown("### 01 / 确认营销需求")
                 product = gr.Dropdown(fallback_products, label="产品型号", allow_custom_value=True, interactive=True)
                 audience = gr.Textbox(label="目标人群", placeholder="例如：经常处理文档和表格的职场人", lines=2)
@@ -59,21 +75,8 @@ def build_studio(examples, fallback_products, desktop_html):
                     save_button = gr.Button("保存为常用风格")
                     style_button = gr.Button("确认当前风格卡", variant="primary")
                 style_notice = gr.Markdown("常用风格只保存在当前浏览器；保存的卡片不含参考文案。")
-                with gr.Accordion("模型 API 设置（可选 · 仅本次会话）", open=False):
-                    gr.Markdown(
-                        "默认使用服务器已配置的模型服务。如需换用自己的 OpenAI 兼容接口，在此填写；"
-                        "设置只保存在本次会话，不写入磁盘、不显示密钥、不进入报告与导出。"
-                    )
-                    api_base = gr.Textbox(label="服务地址（Base URL）", placeholder="https://your-endpoint/v1",
-                                          lines=1, max_length=300)
-                    api_key = gr.Textbox(label="API 密钥", type="password", placeholder="仅本次会话使用",
-                                         lines=1, max_length=400)
-                    api_model = gr.Textbox(label="模型名称（选填）", placeholder="默认 deepseek-chat",
-                                           lines=1, max_length=120)
-                    with gr.Row():
-                        api_save = gr.Button("应用自定义 API", size="sm")
-                        api_reset = gr.Button("恢复服务器配置", size="sm")
-                    api_notice = gr.Markdown("当前：使用服务器配置。")
+                gr.Markdown("提示：完成需求、风格与思路后才会调用模型；未配置 API 时点击生成会提示先配置。",
+                            elem_id="zh-api-hint")
             with gr.Column(scale=7, min_width=360, elem_id="zh-results"):
                 status = gr.Markdown("### 请先确认需求\n可先点击一个示例，再依次确认风格与思路。", elem_id="zh-status")
                 gr.Markdown("### 03 / 先看思路，再出终稿\n思路使用已核验事实和同型号配图；可修改每项内容后确认。", elem_id="zh-plan-title")
@@ -173,15 +176,18 @@ def build_studio(examples, fallback_products, desktop_html):
             except ModelError as exc:
                 return {}, "### 设置未生效\n" + str(exc)
             if not config:
-                return {}, "当前：使用服务器配置。填写服务地址与密钥后再点击「应用自定义 API」。"
+                return {}, "当前：尚未配置。填写服务地址与密钥后再点击「应用自定义 API」。"
             host = config["base_url"].split("://", 1)[-1].split("/", 1)[0]
-            return config, f"当前：自定义 API · 模型 {config['model']} · 地址 {host}。密钥仅保存在本次会话，不回显。"
+            return config, f"✓ 已就绪：模型 {config['model']} · 地址 {host}。密钥仅保存在本次会话，不回显。"
 
         def reset_api():
-            return {}, "已恢复服务器配置；本次会话不再使用自定义 API。"
+            return {}, "已清空当前设置；继续创作前需要重新填写 API。"
 
         def extract_style(desc, ref, base, current, api):
             try:
+                if not api:
+                    return {status: ("### 请先配置模型 API\n提炼风格同样需要模型服务。请先在左上「00 / 模型 API 设置」"
+                                     "填写并应用你自己的 API。")}
                 card = infer_style(desc or "", ref or "", base, api_config=api)
                 updates = invalidate_style(current)
                 updates.update({component: value for component, value in zip(card_inputs, style_values(card))})
@@ -198,9 +204,15 @@ def build_studio(examples, fallback_products, desktop_html):
             except Exception as exc:
                 return error(exc)
 
+        NEED_API = ("### 请先配置模型 API\n"
+                    "本应用不内置密钥。请在左上「00 / 模型 API 设置」填写服务地址、密钥（和模型名），"
+                    "点「应用自定义 API」后再生成。")
+
         def create_idea(*args):
             try:
                 api = args[21] if len(args) > 21 else None
+                if not api:
+                    return {status: NEED_API}
                 current, request, card, _, desc, ref = parts(args)
                 flow.check_style(current, request, card, desc, ref)
                 result = agent.run_task(**request, phase="plan", style_card=card, api_config=api)
@@ -226,6 +238,8 @@ def build_studio(examples, fallback_products, desktop_html):
         def create_final(*args):
             try:
                 api = args[21] if len(args) > 21 else None
+                if not api:
+                    return {status: NEED_API}
                 current, request, card, plan, desc, ref = parts(args)
                 kwargs = flow.generation_args(current, request, card, plan, desc, ref)
                 result = agent.run_task(**request, api_config=api, **kwargs)
