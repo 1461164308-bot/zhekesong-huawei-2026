@@ -475,8 +475,8 @@ def build_demo() -> gr.Blocks:
                     platform = gr.Dropdown(choices=PLATFORMS, value="小红书", label="发布渠道", interactive=True)
                 goal = gr.Dropdown(choices=GOALS, value="种草了解", label="营销目标", interactive=True)
                 requirements = gr.Textbox(
-                    label="补充要求（选填）",
-                    placeholder="希望的语气、长度、活动信息、门店信息，或必须避免的表达…",
+                    label="补充要求 / 华为官方商城商品链接（选填）",
+                    placeholder="语气、篇幅、门店信息，或 https://www.vmall.com/product/商品编号.html",
                     lines=3,
                     max_lines=6,
                 )

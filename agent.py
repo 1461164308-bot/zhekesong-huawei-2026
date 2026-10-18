@@ -1,7 +1,8 @@
 """ZhiHeng: retrieval -> grounded facts -> platform writing -> independent review.
 
 No bundled product answers or fixed marketing results. Every successful run uses
-live ima material or an explicitly authorized archive, plus independent model calls. Credentials are only
+live ima material or an explicitly authorized archive, optionally supplemented by
+verified Huawei Mall product pages, plus independent model calls. Credentials are only
 read from server environment and never included in the result or exported files.
 """
 from __future__ import annotations
@@ -22,6 +23,7 @@ from policy import (PLATFORM_RULES, SCENE_RULES, draft_units, evidence_facts,
 from prompts import EXTRACT_PROMPT, COMPOSE_PROMPT, AUDIT_PROMPT, FACT_REVIEW_PROMPT
 from preview import build_preview
 from public_payload import sanitize_public
+from vmall_client import VmallError, fetch_vmall_sources
 from PIL import Image
 
 PLATFORMS = list(PLATFORM_RULES)
@@ -68,7 +70,7 @@ def get_connection_status() -> str:
         message = "**ima 暂未连接** · 请刷新连接状态，或联系部署者核对共享库权限。"
     model = os.environ.get("LLM_MODEL", "gpt-5.4")
     model_state = f"模型配置就绪（{html.escape(model)}；生成时实际连接）" if os.environ.get("LLM_API_KEY") else "模型尚未配置"
-    return message + "  \n" + model_state + " · ima 资料只读，生成与核验由知衡编排。"
+    return message + "  \n" + model_state + " · 允许华为官方商城商品页补充事实，是否读取以本次核验记录为准；图源仍为同型号授权知识库。"
 
 
 def _empty(status: str, report: str, trace: list | None = None, **extra) -> dict:
@@ -91,6 +93,12 @@ def _displayable_image(image: dict) -> bool:
         return True
     except (OSError, ValueError, Image.DecompressionBombError):
         return False
+
+
+def _origin_label(origin: str) -> str:
+    return {"live_ima": "实时 ima", "ima_cache": "ima 已检索缓存",
+            "offline_archive": "主办方 ZIP 缓存（非实时 ima）",
+            "official_vmall": "华为官方商城本次读取"}.get(origin, "未识别来源")
 
 
 def _public_sources(sources: list[dict]) -> list[dict]:
@@ -152,7 +160,7 @@ def _report(task: dict, strategy: dict, facts: list[dict], copy: str, images: li
         for key, label in (("basis", "判断依据（推测需确认）"), ("questions", "到店先问")):
             if insight.get(key):
                 lines.append(f"\n**{label}：** " + "；".join(str(x) for x in insight[key][:4]))
-    lines.append("\n## 二、知识库依据")
+    lines.append("\n## 二、知识依据")
     for f in facts:
         lines.append(f"\n**[{f['id']}] {f['statement']}**  \n来源：[{f['source_id']}] {f['source_title']}")
         lines.append("\n> " + f['quote'].replace("\n", "\n> "))
@@ -161,9 +169,12 @@ def _report(task: dict, strategy: dict, facts: list[dict], copy: str, images: li
     mode_label = checks.get("data_mode_label", "ima 检索")
     lines += [f"\n**来源清单（{mode_label}）：**"]
     for s in _public_sources(sources):
-        line = f"- [{s['id']}] {s['title']}"
+        line = f"- [{s['id']}] {s['title']} · {_origin_label(s['origin'])}"
+        if s["retrieved_at"]:
+            line += f" · 读取时间：{s['retrieved_at']}"
         if s["official_url"]:
-            line += f" · [资料标注的官方入口]({s['official_url']})"
+            link_label = "华为官方商城商品页" if s["origin"] == "official_vmall" else "资料标注的官方入口"
+            line += f" · [{link_label}]({s['official_url']})"
         lines.append(line)
     lines += ["\n## 三、图文软文", "\n" + copy]
     if strategy.get("demo_steps"):
@@ -173,7 +184,8 @@ def _report(task: dict, strategy: dict, facts: list[dict], copy: str, images: li
             lines.append(f"\n**第{n}步 · 操作：** {demo['action']}  \n**可照读话术：** {demo['speech']}  \n**让顾客确认：** {demo['observe']} {refs}")
     lines.append("\n### 配图方案")
     for i in images:
-        lines.append(f"\n**[{i['id']}] {i['title']}**  \n来源：{mode_label}「{i.get('source_title', '')}」；型号：{i['model']}  \n插入位置：{i['placement']}  \n说明：{i['caption']}")
+        image_origin = _origin_label(i.get("origin", "live_ima"))
+        lines.append(f"\n**[{i['id']}] {i['title']}**  \n来源：{image_origin}「{i.get('source_title', '')}」；型号：{i['model']}  \n插入位置：{i['placement']}  \n说明：{i['caption']}")
         if _public_url(i.get("url", "")):
             lines.append(f"\n[查看素材原始官方地址]({_public_url(i['url'])})")
     if not images:
@@ -181,7 +193,7 @@ def _report(task: dict, strategy: dict, facts: list[dict], copy: str, images: li
     lines += ["\n## 四、核验结果", f"\n**交付状态：** {checks['publication']}",
               f"\n- 资料模式：{mode_label}。缓存读取时间不等于资料发布日期。",
               f"- 产品事实：{checks['accepted_facts']} 项事实通过逐字来源校验及独立证据复核；正文单元通过独立模型审核及规则检查。",
-              f"- 图片型号：{len(images)} 张图来自{mode_label}中的同型号目录；未使用其他型号或外部搜索配图。", 
+              f"- 图片型号：{len(images)} 张图来自{checks.get('image_mode_label', mode_label)}中的同型号目录；未使用其他型号或外部搜索配图。",
               "- 合规：未核实的价格、补贴、库存和赠品不进入文案；不伪造体验，不使用无依据对比。",
               "- 校验范围：本次检索资料及模型/规则复核，不等同于法律审查或当天销售政策核验。"]
     if checks.get("removed_facts"):
@@ -236,6 +248,7 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         if questions:
             return _empty("needs_clarification", "### 需要先确认的信息\n\n" + "\n".join("- " + q for q in questions), trace)
         product = canonical
+        source_requests = requirements + "\n" + revision
         task = sanitize_public({"product": product, "audience": audience, "scenario": scenario, "platform": platform,
                                 "goal": goal, "requirements": requirements, "revision": revision})
         audience, requirements = task["audience"], task["requirements"]
@@ -255,20 +268,37 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
                            or (mode == "mixed" and "offline_archive" in origins))
         if source_mismatch:
             return _empty("blocked", "### 资料来源模式未通过核对\n\n返回的来源标记未知或互相矛盾，请部署者检查配置；本次未调用写作模型。", trace)
-        sources = [s for s in result.get("sources", []) if s.get("text")]
+        knowledge_mode = mode
+        mode_label = {"live_ima": "实时 ima", "ima_cache": "ima 已检索缓存",
+                      "offline_archive": "主办方 ZIP 缓存（非实时 ima）", "mixed": "ima 检索与缓存混合"}[mode]
+        sources = [s.copy() for s in result.get("sources", []) if s.get("text")]
+        mall_sources = fetch_vmall_sources(product, source_requests)
+        used_source_ids = {s["id"] for s in sources}
+        next_source = 1
+        for source in mall_sources:
+            while f"S{next_source}" in used_source_ids:
+                next_source += 1
+            source = source.copy()
+            source["id"] = f"S{next_source}"
+            used_source_ids.add(source["id"])
+            sources.append(source)
+        if mall_sources:
+            mode = "mixed"
+            mode_label += " + 华为官方商城本次读取"
         if not sources:
-            return _empty("blocked", "### 没有可用的事实依据\n\n未能获取该型号的 ima 原文，本次停止生成。请使用 ima 客户端确认资料权限。", trace)
+            return _empty("blocked", "### 没有可用的事实依据\n\n未能获取该型号的授权知识库正文或华为官方商城商品正文，本次停止生成。请确认资料权限或提供准确的官方商城商品页链接。", trace)
         images = [i.copy() for i in result.get("images", []) if normalize(i.get("model", "")) == normalize(product)
                   and _displayable_image(i)]
         if len(images) < strategy["image_min"]:
             return _empty("needs_clarification", f"### 同型号配图数量不足\n\n{platform}需要至少{strategy['image_min']}张图片，本次只有{len(images)}张可验证的同型号素材。请补充获授权的同型号图库，或换用图片数量要求较少的平台。\n\n没有使用其他型号图片凑数。", trace,
                           strategy=strategy, checks={"publication": "配图不足，未交付文案"})
-        mode_label = {"live_ima": "实时 ima", "ima_cache": "ima 已检索缓存",
-                      "offline_archive": "主办方 ZIP 缓存（非实时 ima）", "mixed": "ima 检索与缓存混合"}[mode]
-        step("知识库资料与配图检索", 0.3, f"{mode_label}：已读取{len(sources)}份型号资料、{len(images)}张同型号原图。")
+        step("资料与配图检索", 0.3, f"{mode_label}：已读取{len(sources)}份型号资料（含{len(mall_sources)}份官方商城正文）、{len(images)}张知识库同型号原图。")
         model = LLMClient()
         # Full per-product facts/limits are supplied; historical marketing/price docs are not trusted facts.
         payload_sources = [{"id": s["id"], "title": s["title"], "kind": s.get("kind", "facts"),
+                            "origin": s.get("origin", knowledge_mode),
+                            "official_url": _public_url(s.get("official_url", "")),
+                            "retrieved_at": s.get("retrieved_at", ""),
                             "text": s["text"][:26000]} for s in sources if s.get("kind") != "price"]
         image_meta = [{k: i.get(k, "") for k in ("id", "title", "caption", "model")} for i in images]
         extracted = model.json(EXTRACT_PROMPT, {"task": task, "strategy": strategy, "sources": payload_sources,
@@ -280,7 +310,7 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
                           checks={"publication": "资料冲突，停止生成", "conflicts": extracted["conflicts"]})
         facts, rejected = evidence_facts(extracted, sources)
         if not facts:
-            return _empty("blocked", "### 事实来源校验未通过\n\n没有事实能够在本次 ima 原文中逐字定位，本次停止生成。请重试或核对资料。", trace)
+            return _empty("blocked", "### 事实来源校验未通过\n\n没有事实能够在本次授权知识库或华为官方商城正文中逐字定位，本次停止生成。请重试或核对资料。", trace)
         evidence_review = model.json(FACT_REVIEW_PROMPT, {"facts": facts}, max_tokens=2500)
         fact_verdicts = {x.get("id"): x for x in evidence_review.get("facts", []) if isinstance(x, dict)}
         evidence_removed = [{"id": f["id"], "reason": str(fact_verdicts.get(f["id"], {}).get("reason", "证据复核未确认该事实。"))}
@@ -304,6 +334,17 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
             repair.append(f"正文当前{body_chars}个汉字，压缩至{strategy['body_target']}，保留事实适用条件，少讲参数。")
         if re.search(r"\b(?:usually|basically|actually|anyway|whatever)\b", body_text, re.I):
             repair.append("移除无意义的夹杂英文，改为自然简体中文。")
+        gate_feedback = []
+        for unit in draft_units(draft, strategy):
+            if unit["id"] == "customer_insight":
+                continue
+            refs = set(unit.get("fact_ids", []))
+            unit_facts = [fact for fact in facts if fact["id"] in refs]
+            violations = text_violations(unit.get("heading", "") + " " + unit["text"], unit_facts, product)
+            if violations:
+                gate_feedback.append(f"{unit['id']}: " + "；".join(violations))
+        if gate_feedback:
+            repair.append("确定性事实门控发现以下文本与该单元引用不一致。仅修改这些单元：删除不支持表述，或补上真正支持数值与单位的fact_ids；不要复述F编号作为文案。\n" + "\n".join(gate_feedback[:8]))
         if repair:
             draft = model.json(COMPOSE_PROMPT, {**compose_payload, "previous_draft": draft,
                                                "quality_revision": repair})
@@ -326,7 +367,11 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
                 continue
             verdict = reviewed.get(unit["id"], {})
             unit_facts = [fact for fact in facts if fact["id"] in unit.get("fact_ids", [])]
-            issues = text_violations(unit.get("heading", "") + " " + unit["text"], unit_facts, product)
+            # Insights describe user needs and explicit assumptions, not product evidence.
+            # Keep the independent semantic audit for unsupported product claims, but do
+            # not apply product-number/unit gates to ordinary user questions or conditions.
+            issues = [] if unit["id"] == "customer_insight" else text_violations(
+                unit.get("heading", "") + " " + unit["text"], unit_facts, product)
             invalid_refs = set(unit.get("fact_ids", [])) - allowed_ids
             if invalid_refs:
                 issues.append("引用了未通过校验的事实编号。")
@@ -386,6 +431,10 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         strategy["demo_steps"] = demos
         checks = {"publication": "已通过本次资料依据与内容核验；发布前请复核目标SKU和当天政策",
                   "accepted_demo_steps": len(demos),
+                   "knowledge_retrieval_mode": knowledge_mode,
+                   "source_origins": sorted({s.get("origin", knowledge_mode) for s in sources + selected}),
+                   "official_vmall_sources": len(mall_sources),
+                   "image_mode_label": "、".join(sorted({_origin_label(i.get("origin", knowledge_mode)) for i in selected})),
                   "retrieval_mode": mode, "data_mode_label": mode_label,
                   "accepted_facts": len(facts), "accepted_text_units": len(accepted), "ima_images": len(selected),
                   "removed_facts": evidence_removed,
@@ -427,6 +476,8 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         return {"status": "ready", "report": report, "copy_text": copy, "strategy": strategy,
                 "facts": facts, "images": selected, "checks": checks, "trace": trace,
                 "export_markdown": str(md), "export_json": str(js), "preview_html": preview}
+    except VmallError as exc:
+        return _empty("needs_clarification", "### 华为官方商城资料需要确认\n\n" + html.escape(str(exc)) + "\n\n本次未使用模型记忆或第三方页面补写。", trace)
     except (IMAError, ModelError) as exc:
         # These client exceptions are deliberately sanitized at their boundary.
         return _empty("error", "### 本次任务未完成\n\n" + html.escape(str(exc)), trace)

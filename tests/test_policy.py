@@ -142,10 +142,13 @@ class PublicationPolicyTests(unittest.TestCase):
 
     def test_draft_units_enforce_platform_section_limit(self):
         strategy = strategy_for("顾客", "门店到访", "门店朋友圈", "预约")
-        draft = {"title": "任务清单", "intro": "先确认任务。", "sections": [
+        draft = {"title": "任务清单", "title_fact_ids": ["F1"], "intro": "先确认任务。", "intro_fact_ids": ["F1"], "sections": [
             {"heading": "A", "text": "第一段", "fact_ids": ["F1"]},
-            {"heading": "B", "text": "第二段", "fact_ids": ["F1"]}], "cta": "到店咨询。", "tags": ["#选购"]}
+            {"heading": "B", "text": "第二段", "fact_ids": ["F1"]}], "cta": "到店咨询。", "cta_fact_ids": ["F1"], "tags": ["#选购"]}
         units = draft_units(draft, strategy)
+        self.assertEqual(next(x for x in units if x["id"] == "title")["fact_ids"], ["F1"])
+        self.assertEqual(next(x for x in units if x["id"] == "intro")["fact_ids"], ["F1"])
+        self.assertEqual(next(x for x in units if x["id"] == "cta")["fact_ids"], ["F1"])
         self.assertEqual(len([x for x in units if x["id"].startswith("section_")]), 1)
         self.assertFalse(any(x["id"] == "tags" for x in units))
 

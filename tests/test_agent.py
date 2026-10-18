@@ -150,6 +150,118 @@ class AgentRegressionTests(unittest.TestCase):
         self.assertIsNone(result.get("export_markdown"))
         self.assertIsNone(result.get("export_json"))
 
+    def test_truncated_png_is_rejected_before_any_model_call(self):
+        self.picture.write_bytes(self.picture.read_bytes()[:40])
+        result = self.run_task()
+        self.assert_not_published(result, "needs_clarification")
+        self.assertIn("配图", result["report"])
+        self.assertEqual(self.phases(), [])
+        self.model_factory.assert_not_called()
+
+    def test_preview_without_embedded_images_cannot_be_delivered_ready(self):
+        for empty_preview in ("", "<article>Only text, no verified image</article>"):
+            with self.subTest(preview=empty_preview):
+                with patch("agent.build_preview", return_value=empty_preview):
+                    result = self.run_task()
+                self.assert_not_published(result, "needs_clarification")
+                self.assertIn("预览", result["report"])
+
+    def test_unknown_and_contradictory_source_modes_block_before_model(self):
+        baseline = copy.deepcopy(self.ima.result)
+        cases = [("unknown", False, "live_ima"), ("live_ima", True, "live_ima"),
+                 ("offline_archive", False, "offline_archive"), ("live_ima", False, "offline_archive"),
+                 ("live_ima", False, "unknown"), ("mixed", False, "offline_archive")]
+        for mode, offline, origin in cases:
+            with self.subTest(mode=mode, offline=offline, origin=origin):
+                self.ima.result = copy.deepcopy(baseline)
+                self.ima.result.update(retrieval_mode=mode, offline_archive=offline)
+                for entry in self.ima.result["sources"] + self.ima.result["images"]:
+                    entry["origin"] = origin
+                result = self.run_task()
+                self.assert_not_published(result)
+                self.assertIn("来源模式", result["report"])
+                self.assertEqual(self.phases(), [])
+                self.model_factory.assert_not_called()
+
+    def test_pasted_input_keys_and_signed_urls_are_redacted_before_task_and_exports(self):
+        marker = "sk-syntheticmarker"
+        signed_url = "https://bucket.myqcloud.com/private.png?sign=syntheticinputsignature"
+        pasted = "保留任务。api_key=" + marker + " " + signed_url
+        result = self.run_task(requirements=pasted, revision=pasted)
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        exported = json.loads(Path(result["export_json"]).read_text(encoding="utf-8"))
+        surfaces = [json.dumps(result, ensure_ascii=False), json.dumps(exported, ensure_ascii=False),
+                    Path(result["export_markdown"]).read_text(encoding="utf-8"), result["preview_html"],
+                    json.dumps(self.model.calls, ensure_ascii=False), json.dumps(self.ima.retrieve_calls, ensure_ascii=False)]
+        for surface in surfaces:
+            self.assertNotIn(marker, surface)
+            self.assertNotIn(signed_url, surface)
+            self.assertNotIn("syntheticinputsignature", surface)
+        self.assertIn("已隐藏", exported["task"]["requirements"])
+        self.assertIn("已隐藏", exported["task"]["revision"])
+        self.assertIn("保留任务", exported["task"]["requirements"])
+
+    def test_model_injected_secrets_are_removed_from_strategy_accepted_text_and_exports(self):
+        marker = "sk-modelsyntheticmarker"
+        signed_url = "https://bucket.myqcloud.com/private.png?sign=syntheticmodelsignature"
+        leaked = "api_key=" + marker + " " + signed_url
+        self.model.extracted["constraints"] = [leaked]
+        self.model.extracted["unknowns"] = [leaked]
+        self.model.draft["angle"] = "使用任务 " + leaked
+        self.model.draft["priorities"] = [leaked]
+        self.model.draft["sections"][0]["text"] += " " + leaked
+        result = self.run_task()
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        exported = json.loads(Path(result["export_json"]).read_text(encoding="utf-8"))
+        for surface in (json.dumps(result, ensure_ascii=False), json.dumps(exported, ensure_ascii=False),
+                        Path(result["export_markdown"]).read_text(encoding="utf-8"), result["preview_html"]):
+            self.assertNotIn(marker, surface)
+            self.assertNotIn(signed_url, surface)
+            self.assertNotIn("syntheticmodelsignature", surface)
+        self.assertIn("已隐藏", result["strategy"]["angle"])
+        self.assertIn("已隐藏", result["copy_text"])
+        self.assertIn("14.2", result["copy_text"])
+
+    def test_customer_insight_omitted_or_removed_by_audit_is_not_exported(self):
+        insight = {"situation": "独特的合成客户处境。", "decision_barrier": "独特的合成决策阻力。"}
+        self.model.extracted["customer_insight"] = insight
+        for verdict in ("omit", "remove"):
+            with self.subTest(verdict=verdict):
+                self.model.omit_unit_ids.clear()
+                self.model.audit_verdicts.clear()
+                if verdict == "omit":
+                    self.model.omit_unit_ids.add("customer_insight")
+                else:
+                    self.model.audit_verdicts["customer_insight"] = "remove"
+                result = self.run_task()
+                self.assertEqual(result["status"], "ready", result.get("report"))
+                self.assertNotIn("customer_insight", result["strategy"])
+                self.assertNotIn("客户洞察卡", result["report"])
+                self.assertNotIn(insight["situation"], result["report"])
+                self.assertTrue(any(unit["id"] == "customer_insight" for unit in result["checks"]["removed_units"]))
+                exported = json.loads(Path(result["export_json"]).read_text(encoding="utf-8"))
+                self.assertNotIn("customer_insight", exported["strategy"])
+                self.assertNotIn(insight["situation"], json.dumps(exported, ensure_ascii=False))
+
+    def test_unit_referencing_only_first_fact_cannot_borrow_other_fact_numbers_or_units(self):
+        second_quote = "指定条件下测试续航为120小时，内存容量为32 GB。"
+        second_source = {**copy.deepcopy(self.ima.result["sources"][0]), "id": "S2", "title": "Other synthetic evidence", "text": second_quote}
+        self.ima.result["sources"].append(second_source)
+        self.model.extracted["facts"].append({"statement": second_quote, "quote": second_quote,
+                                              "source_id": "S2", "conditions": ["指定测试条件"], "category": "spec"})
+        for statement in ("指定条件下续航为120小时。", "内存容量为32 GB。"):
+            with self.subTest(statement=statement):
+                self.model.draft["sections"][0].update(text=statement, fact_ids=["F1"])
+                result = self.run_task()
+                self.assert_not_published(result)
+                removed = result["checks"]["removed_units"]
+                self.assertTrue(any(unit["id"] == "section_1" for unit in removed))
+        # Control: the same units and values are supported when F2 is actually cited.
+        self.model.draft["sections"][0]["fact_ids"] = ["F2"]
+        result = self.run_task()
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        self.assertIn("32 GB", result["copy_text"])
+
     @staticmethod
     def store_demo():
         return {"action": "请顾客打开自带的示例文档页面。",
@@ -178,8 +290,8 @@ class AgentRegressionTests(unittest.TestCase):
         self.assertIn("14.2", result["copy_text"])
 
     def test_customer_insight_is_passed_to_compose_and_report_without_becoming_a_fact(self):
-        insight = {"situation": "需要在不同教室之间携带资料。", "decision_barrier": "担心必用课程软件是否适配。",
-                   "empathy_anchor": "先确认课程任务，再讨论硬件选择。", "basis": ["由开学季和目标人群推测，需到店确认。"],
+        insight = {"situation": "需要在不同教室之间携带资料，假设每周有11项课程任务。", "decision_barrier": "担心必用课程软件是否适配。",
+                   "empathy_anchor": "先确认课程任务，再讨论硬件选择。", "basis": ["由开学季和目标人群推测，11项课程任务是假设，需到店确认。"],
                    "questions": ["你有哪些必须安装的课程软件？"]}
         self.model.extracted["customer_insight"] = insight
         result = self.run_task()
@@ -256,6 +368,25 @@ class AgentRegressionTests(unittest.TestCase):
         self.model.draft["demo_steps"] = [self.store_demo()]
         self.model.audit_verdicts["section_1"] = "remove"
         self.assert_not_published(self.run_task())
+
+    def test_citation_repair_is_bounded_and_independently_reviewed(self):
+        self.model.draft["title"] = "14.2英寸屏幕选购参考"
+        original_json = self.model.json
+
+        def with_repair(system, payload, **kwargs):
+            if payload.get("quality_revision"):
+                self.model.draft["title_fact_ids"] = ["F1"]
+            return original_json(system, payload, **kwargs)
+
+        with patch.object(self.model, "json", side_effect=with_repair):
+            result = self.run_task()
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        self.assertEqual(self.phases(), ["extract", "fact_review", "compose", "compose", "audit"])
+        self.assertIn("14.2英寸", result["copy_text"])
+        audit = next(payload for phase, payload in self.model.calls if phase == "audit")
+        title = next(unit for unit in audit["units"] if unit["id"] == "title")
+        self.assertEqual(title["fact_ids"], ["F1"])
+        self.assertEqual(len(result["checks"]["writing_repairs"]), 1)
 
     def test_valid_pipeline_invokes_separate_fact_review_before_compose(self):
         result = self.run_task()
@@ -431,6 +562,44 @@ class AgentRegressionTests(unittest.TestCase):
         model_payloads = json.dumps(self.model.calls, ensure_ascii=False)
         self.assertNotIn(SYNTHETIC_API_KEY, model_payloads)
         self.assertNotIn(SYNTHETIC_LLM_KEY, model_payloads)
+
+    def test_official_mall_supplement_is_citable_and_separate_from_archive_images(self):
+        self.ima.result.update(retrieval_mode="offline_archive", offline_archive=True)
+        for entry in self.ima.result["sources"] + self.ima.result["images"]:
+            entry["origin"] = "offline_archive"
+        source = {"title": PRODUCT + " 官方商城", "text": QUOTE, "kind": "facts",
+                  "official_url": "https://www.vmall.com/product/12345.html",
+                  "retrieved_at": "2026-10-18T08:00:00+00:00", "origin": "official_vmall"}
+        self.model.extracted["facts"][0]["source_id"] = "S2"
+        with patch("agent.fetch_vmall_sources", return_value=[source]):
+            result = self.run_task(requirements=source["official_url"])
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        self.assertEqual(result["checks"]["retrieval_mode"], "mixed")
+        self.assertEqual(result["checks"]["official_vmall_sources"], 1)
+        self.assertEqual(result["facts"][0]["source_id"], "S2")
+        exported = json.loads(Path(result["export_json"]).read_text(encoding="utf-8"))
+        self.assertEqual([s["origin"] for s in exported["sources"]], ["offline_archive", "official_vmall"])
+        self.assertEqual(exported["images"][0]["origin"], "offline_archive")
+        self.assertIn(source["official_url"], result["report"])
+        self.assertIn(source["retrieved_at"], result["report"])
+        self.assertIn("非实时 ima", result["report"])
+
+    def test_official_mall_homepage_requests_product_link_before_models(self):
+        result = self.run_task(requirements="https://www.vmall.com/")
+        self.assert_not_published(result, "needs_clarification")
+        self.assertIn("具体商品页", result["report"])
+        self.model_factory.assert_not_called()
+
+    def test_official_mall_facts_can_supply_evidence_without_fabricating_knowledge_text(self):
+        self.ima.result["sources"] = []
+        source = {"title": PRODUCT + " 官方商城", "text": QUOTE, "kind": "facts",
+                  "official_url": "https://www.vmall.com/product/12345.html",
+                  "retrieved_at": "2026-10-18T08:00:00+00:00", "origin": "official_vmall"}
+        with patch("agent.fetch_vmall_sources", return_value=[source]):
+            result = self.run_task(requirements=source["official_url"])
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        self.assertEqual(result["checks"]["retrieval_mode"], "mixed")
+        self.assertEqual(result["checks"]["official_vmall_sources"], 1)
 
     def test_offline_origin_is_explicit_in_result_report_and_exports(self):
         self.ima.result.update(retrieval_mode="offline_archive", offline_archive=True)

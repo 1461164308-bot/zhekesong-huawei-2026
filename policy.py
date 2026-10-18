@@ -195,8 +195,8 @@ def text_violations(text: str, facts: list[dict], product: str) -> list[str]:
 
 
 def draft_units(draft: dict, strategy: dict) -> list[dict]:
-    units = [{"id": "title", "text": str(draft.get("title", "")), "fact_ids": []},
-             {"id": "intro", "text": str(draft.get("intro", "")), "fact_ids": draft.get("intro_fact_ids", [])}]
+    units = [{"id": "title", "text": str(draft.get("title", "")), "fact_ids": draft.get("title_fact_ids", []) or []},
+             {"id": "intro", "text": str(draft.get("intro", "")), "fact_ids": draft.get("intro_fact_ids", []) or []}]
     for i, sec in enumerate(draft.get("sections", [])[:strategy["sections"]], 1):
         if isinstance(sec, dict):
             units.append({"id": f"section_{i}", "text": str(sec.get("text", "")),
@@ -209,7 +209,7 @@ def draft_units(draft: dict, strategy: dict) -> list[dict]:
             units.append({"id": f"demo_{i}", "text": f"操作：{action}\n话术：{speech}\n验收：{observe}",
                           "action": action, "speech": speech, "observe": observe,
                           "fact_ids": demo.get("fact_ids", [])})
-    units.append({"id": "cta", "text": str(draft.get("cta", "")), "fact_ids": []})
+    units.append({"id": "cta", "text": str(draft.get("cta", "")), "fact_ids": draft.get("cta_fact_ids", []) or []})
     if strategy["tags"]:
         tags = draft.get("tags", [])
         units.append({"id": "tags", "text": " ".join(str(t) for t in tags[:6]), "fact_ids": []})

@@ -20,13 +20,13 @@ class LLMClient:
 
     def __init__(self):
         self.key = os.environ.get("LLM_API_KEY", "").strip()
-        self.base = os.environ.get("LLM_BASE_URL", "https://api.openai-next.com/v1").rstrip("/")
+        self.base = os.environ.get("LLM_BASE_URL", "").strip().rstrip("/")
         self.model = os.environ.get("LLM_MODEL", "gpt-5.4").strip()
         self.fallback_models = [m.strip() for m in os.environ.get(
             "LLM_FALLBACK_MODELS", "claude-fable-5,gpt-5.4-mini").split(",") if m.strip()]
-        self.max_calls = int(os.environ.get("LLM_MAX_DAILY_CALLS", "400"))
-        if not self.key:
-            raise ModelError("模型服务未配置。请由部署者配置 LLM_API_KEY 服务端密钥。")
+        self.max_calls = int(os.environ.get("LLM_MAX_DAILY_CALLS", "240"))
+        if not self.key or not self.base:
+            raise ModelError("模型服务未配置。请由部署者配置 LLM_BASE_URL 与 LLM_API_KEY 服务端配置。")
         if not self.base.startswith("https://"):
             raise ModelError("模型服务地址必须使用 HTTPS。")
 
