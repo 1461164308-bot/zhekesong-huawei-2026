@@ -68,7 +68,7 @@ def build_studio(examples, fallback_products, desktop_html):
                                           lines=1, max_length=300)
                     api_key = gr.Textbox(label="API 密钥", type="password", placeholder="仅本次会话使用",
                                          lines=1, max_length=400)
-                    api_model = gr.Textbox(label="模型名称（选填）", placeholder="默认 Qwen3.8-Flash-Next（魔搭免费推理）",
+                    api_model = gr.Textbox(label="模型名称（选填）", placeholder="默认 deepseek-chat",
                                            lines=1, max_length=120)
                     with gr.Row():
                         api_save = gr.Button("应用自定义 API", size="sm")

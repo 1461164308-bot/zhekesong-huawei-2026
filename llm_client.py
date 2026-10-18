@@ -10,9 +10,9 @@ import time
 import requests
 
 
-DEFAULT_BASE_URL = "https://api-inference.modelscope.cn/v1"
-DEFAULT_MODEL = "Qwen/Qwen3.8-Flash-Next"
-DEFAULT_FALLBACK = "Qwen/Qwen3.5-27B"
+DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
+DEFAULT_MODEL = "deepseek-chat"
+DEFAULT_FALLBACK = ""
 
 
 class ModelError(RuntimeError):
