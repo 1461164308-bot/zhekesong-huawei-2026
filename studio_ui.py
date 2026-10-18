@@ -251,9 +251,19 @@ def build_studio(examples, fallback_products, desktop_html):
                 current, request, card, plan, desc, ref = parts(args)
                 new = flow.confirm_final(current, request, card, plan, desc, ref)
                 result = new["final_result"]
-                return {state: new, status: "### ✓ 终稿已确认\n可下载平台排版、文字及图片素材包。公众号请按素材包说明在后台上传图片并排版。",
-                        html_file: result.get("export_html"), bundle_file: result.get("export_bundle"),
-                        md_file: result.get("export_markdown"), json_file: result.get("export_json"), **stages(0, 1, 2, 3)}
+                files = {"html_file": result.get("export_html"), "bundle_file": result.get("export_bundle"),
+                         "md_file": result.get("export_markdown"), "json_file": result.get("export_json")}
+                if not any(files.values()):
+                    return {status: "### 暂未生成下载文件\n终稿已确认，但导出文件缺失。请重新生成终稿后再确认；本次没有可下载材料。"}
+                if new.get("final_draft"):
+                    status_text = ("### ✓ 终稿已确认（草稿）\n平台格式未全部达标，已按草稿下载："
+                                   "HTML 顶部有“草稿 · 未达标”横幅，ZIP 内含「草稿说明.txt」。对外发布前请先按核验提示修改。")
+                else:
+                    status_text = ("### ✓ 终稿已确认\n可下载平台排版、文字及图片素材包。"
+                                   "公众号请按素材包说明在后台上传图片并排版。")
+                return {state: new, status: status_text,
+                        html_file: files["html_file"], bundle_file: files["bundle_file"],
+                        md_file: files["md_file"], json_file: files["json_file"], **stages(0, 1, 2, 3)}
             except Exception as exc:
                 return error(exc)
 

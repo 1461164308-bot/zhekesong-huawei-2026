@@ -174,8 +174,9 @@ def confirm_final(state: dict, request: dict, card: dict, plan: dict, descriptio
     result = state.get("final_result") or {}
     if result.get("status") != "ready" or not result.get("copy_text"):
         raise FlowError("请先生成终稿并检查图文内容。")
-    if result.get("checks", {}).get("platform_ready") is False:
-        raise FlowError("终稿尚有平台格式未达标项，请按核验提示修改思路并重新生成后再确认。")
+    # 平台格式未达标时仍允许确认，但标记为草稿：下载的 HTML/ZIP 会写明"草稿 · 未达标"。
+    draft = result.get("checks", {}).get("platform_ready") is False
     updated = deepcopy(state)
-    updated.update(stage="final_confirmed", final_key=digest(result["copy_text"]))
+    updated.update(stage="final_confirmed", final_key=digest(result["copy_text"]),
+                   final_draft=draft)
     return updated

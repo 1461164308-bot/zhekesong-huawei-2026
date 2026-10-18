@@ -72,11 +72,13 @@ class CreationFlowTests(unittest.TestCase):
         state["prepared"]["created_at"] = time.time()
         state = flow.confirm_plan(state, self.request, self.card, plan)
         state = flow.attach_final(state, dict(status="ready", copy_text="待改稿", checks={"platform_ready": False}))
-        with self.assertRaises(flow.FlowError):
-            flow.confirm_final(state, self.request, self.card, plan)
+        draft_confirmed = flow.confirm_final(state, self.request, self.card, plan)
+        self.assertEqual(draft_confirmed["stage"], "final_confirmed")
+        self.assertTrue(draft_confirmed["final_draft"])
         state["final_result"]["checks"]["platform_ready"] = True
         confirmed = flow.confirm_final(state, self.request, self.card, plan)
         self.assertEqual(confirmed["stage"], "final_confirmed")
+        self.assertFalse(confirmed["final_draft"])
 
 
 if __name__ == "__main__":
