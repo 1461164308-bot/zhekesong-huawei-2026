@@ -22,6 +22,8 @@ class LLMClient:
         self.key = os.environ.get("LLM_API_KEY", "").strip()
         self.base = os.environ.get("LLM_BASE_URL", "https://api.openai-next.com/v1").rstrip("/")
         self.model = os.environ.get("LLM_MODEL", "gpt-5.4").strip()
+        self.fallback_models = [m.strip() for m in os.environ.get(
+            "LLM_FALLBACK_MODELS", "claude-fable-5,gpt-5.4-mini").split(",") if m.strip()]
         self.max_calls = int(os.environ.get("LLM_MAX_DAILY_CALLS", "400"))
         if not self.key:
             raise ModelError("模型服务未配置。请由部署者配置 LLM_API_KEY 服务端密钥。")
@@ -61,27 +63,38 @@ class LLMClient:
             "temperature": 0.3,
             "max_tokens": max_tokens,
         }
-        for attempt in range(2):
-            try:
-                response = requests.post(
-                    self.base + "/chat/completions",
-                    headers={"Authorization": "Bearer " + self.key, "Content-Type": "application/json"},
-                    json=body,
-                    timeout=(12, 120),
-                )
-            except requests.RequestException:
-                if attempt == 0:
+        attempts = [(self.model, 3)] + [(name, 2) for name in self.fallback_models]
+        last_status = 0
+        for model_name, tries in attempts:
+            body["model"] = model_name
+            for attempt in range(tries):
+                try:
+                    response = requests.post(
+                        self.base + "/chat/completions",
+                        headers={"Authorization": "Bearer " + self.key, "Content-Type": "application/json"},
+                        json=body,
+                        timeout=(12, 120),
+                    )
+                except requests.RequestException:
+                    if attempt < tries - 1:
+                        continue
+                    break
+                if response.status_code in (429, 500, 502, 503, 504) and attempt < tries - 1:
+                    time.sleep(1.5 * (attempt + 1))
                     continue
-                raise ModelError("模型服务连接超时或暂时不可用；本次没有生成可发布文案。") from None
-            if response.status_code in (429, 502, 503, 504) and attempt == 0:
-                continue
-            if not response.ok:
-                raise ModelError(f"模型服务返回 HTTP {response.status_code}，本次生成已停止。")
-            try:
-                msg = response.json()["choices"][0]["message"]["content"]
-                if isinstance(msg, list):
-                    msg = "".join(x.get("text", "") for x in msg if isinstance(x, dict))
-            except (ValueError, KeyError, IndexError, TypeError):
-                raise ModelError("模型响应格式异常，本次生成已停止。") from None
-            return self._parse(msg)
-        raise ModelError("模型服务暂不可用。")
+                if not response.ok:
+                    last_status = response.status_code
+                    break
+                try:
+                    msg = response.json()["choices"][0]["message"]["content"]
+                    if isinstance(msg, list):
+                        msg = "".join(x.get("text", "") for x in msg if isinstance(x, dict))
+                except (ValueError, KeyError, IndexError, TypeError):
+                    if attempt < tries - 1:
+                        continue
+                    raise ModelError("模型响应格式异常，本次生成已停止。") from None
+                self.model = model_name
+                return self._parse(msg)
+        if last_status:
+            raise ModelError(f"模型服务返回 HTTP {last_status}，本次生成已停止。")
+        raise ModelError("模型服务连接超时或暂时不可用；本次没有生成可发布文案。")
