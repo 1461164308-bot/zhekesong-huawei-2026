@@ -234,12 +234,15 @@ def build_studio(examples, fallback_products, desktop_html):
                     return {state: new, status: result.get("report", "本次暂未完成，请重试。"), **stages(0, 1, 2), **lock_files()}
                 platform_ready = result.get("checks", {}).get("platform_ready", False)
                 notice = ("### 图文终稿已生成，等待你确认\n请审阅平台预览、文字和配图。确认终稿后提供下载。" if platform_ready else
-                          "### 当前为待修改草稿\n平台格式尚未全部达标，请查看核验提示，修改上方思路并重新确认、生成。")
+                          "### 当前为待修改草稿（仍可确认下载，材料带草稿标记）\n"
+                          "平台格式尚未全部达标，未达标项见「报告与核验」。"
+                          "你可以先确认并下载留存：HTML 顶部与 ZIP 内「草稿说明.txt」都会标明“草稿 · 未达标”，"
+                          "对外发布前请按提示修改。")
                 return {state: new, status: notice, preview: result["preview_html"],
                         copy_text: result.get("publish_copy", result["copy_text"]),
                         gallery: [(i["path"], i.get("placement", "") + " · " + i.get("caption", "")) for i in result["images"]],
                         report: result["report"], checks: result["checks"], delivery_notes: result.get("delivery_notes", ""),
-                        **stages(0, 1, 2, *([3] if platform_ready else [])), **lock_files()}
+                        **stages(0, 1, 2, 3), **lock_files()}
             except Exception as exc:
                 return error(exc)
 

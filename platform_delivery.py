@@ -107,11 +107,22 @@ def export_delivery(units: list[dict], images: list[dict], task: dict, mode_labe
     notes = _delivery_notes(platform, len(pictures), checks["ready"])
     title = next((unit["text"] for unit in clean if unit["id"] == "title"), platform + "图文排版")
     article = render_platform(clean, pictures, task, mode_label, audit=False)
+    draft = not checks["ready"]
+    banner = ""
+    if draft:
+        issues = "；".join(str(x) for x in checks.get("issues", [])[:6])
+        notes = ("【草稿 · 平台格式未全部达标】本文件仅供内部修改与确认，"
+                 "未达到平台发布要求前不得直接对外发布。\n未达标项：" + issues + "\n\n") + notes
+        banner = ("<div style=\"max-width:820px;margin:0 auto 14px;padding:12px 16px;border-radius:12px;"
+                  "background:#fff4e5;border:1px solid #f0b46a;color:#7a4a00;font:14px/1.6 sans-serif;"
+                  "font-family:'Microsoft YaHei',sans-serif\">"
+                  "<strong>草稿 · 平台格式未全部达标</strong><br>"
+                  f"{escape(issues)}<br>请按提示修改后再对外发布。</div>")
     document = ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                f'<title>{escape(title, quote=True)}</title></head>'
+                f'<title>{escape(("[草稿] " if draft else "") + title, quote=True)}</title></head>'
                 '<body style="margin:0;padding:18px 10px;background:#f2f5f7">'
-                + article + '</body></html>')
+                + banner + article + '</body></html>')
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     html_path = out_dir / "知衡-发布排版.html"
@@ -121,7 +132,10 @@ def export_delivery(units: list[dict], images: list[dict], task: dict, mode_labe
         bundle.writestr("排版.html", document.encode("utf-8"))
         bundle.writestr("发布文案.txt", publish_copy.encode("utf-8"))
         bundle.writestr("平台使用说明.txt", notes.encode("utf-8"))
+        if draft:
+            bundle.writestr("草稿说明.txt", notes.encode("utf-8"))
         for index, item in enumerate(pictures, 1):
             bundle.writestr(f"images/{index:02d}.jpg", item["jpeg"])
     return {"export_html": str(html_path), "export_bundle": str(bundle_path),
-            "publish_copy": publish_copy, "delivery_notes": notes, "platform_checks": checks}
+            "publish_copy": publish_copy, "delivery_notes": notes, "platform_checks": checks,
+            "draft": draft}
