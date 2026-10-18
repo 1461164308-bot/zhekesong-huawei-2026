@@ -1,0 +1,162 @@
+"""Business strategy and deterministic publication gates (no API dependency)."""
+from __future__ import annotations
+
+import re
+import unicodedata
+
+PLATFORM_RULES = {
+    "小红书": {"title_max": 28, "body_target": "350-650字", "sections": 4,
+              "structure": "选购问题切入 → 场景清单 → 有依据的取舍 → 评论/收藏咨询", "tone": "口语、短段落、非亲测口吻",
+              "image_min": 3, "image_max": 6, "cta": "说说你的课程和常用软件，带着清单到店试用后再决定。", "tags": True},
+    "微信公众号": {"title_max": 45, "body_target": "650-1000字", "sections": 5,
+                 "structure": "标题与导语 → 场景问题 → 分点论证 → 适用条件 → 选购建议", "tone": "信息充分、专业克制、有论证",
+                 "image_min": 2, "image_max": 4, "cta": "欢迎携带常用设备与软件清单，到店验证具体版本是否适合。", "tags": False},
+    "门店朋友圈": {"title_max": 30, "body_target": "80-180字", "sections": 1,
+                "structure": "一句场景 → 一个核心卖点 → 到店或私信咨询", "tone": "门店服务口吻、简洁直接、不冒充用户体验",
+                "image_min": 1, "image_max": 3, "cta": "私信你的使用需求，预约到店体验；具体款式和适配情况以现场确认为准。", "tags": False},
+    "门店海报": {"title_max": 18, "body_target": "40-120字", "sections": 3,
+               "structure": "主标题 → 副标题 → 不超过3条短卖点 → 到店引导", "tone": "短句、少信息、单一主视觉",
+               "image_min": 1, "image_max": 1, "cta": "到店体验，咨询具体款式与使用条件。", "tags": False},
+}
+
+SCENE_RULES = {
+    "开学季": {"pain": "课程软件是否适配、教室与宿舍间携带、学习与资料整理", "priorities": ["学习任务与软件条件", "携带和屏幕", "多设备资料流转"], "proof_task": "带课程软件清单和常用资料到店试用"},
+    "职场办公": {"pain": "差旅负担、会议效率、文档与手机资料流转", "priorities": ["携带与会议", "协同的设备和版本条件", "隐私与安全"], "proof_task": "用一次真实会议/文档流转任务验证"},
+    "内容创作": {"pain": "屏幕查看素材、软件插件适配与素材流转", "priorities": ["素材和屏幕", "具体软件兼容性", "工作流与接口"], "proof_task": "带常用素材、插件与外设验证工作流，不能编造软件测试成绩"},
+    "家庭换新": {"pain": "家庭成员的不同任务、旧机资料迁移、操作习惯", "priorities": ["易用性", "资料迁移条件", "全家真实任务"], "proof_task": "列出全家必用软件并咨询迁移步骤"},
+    "企业采购": {"pain": "批量部署、业务系统与外设兼容、管理和服务边界", "priorities": ["IT兼容验证", "配置与管理", "服务需官方确认"], "proof_task": "由IT完成小规模POC，未核实政策不承诺"},
+    "门店到访": {"pain": "短时间内找到与用户需求相关的体验理由", "priorities": ["单一可体验卖点", "具体体验任务", "咨询引导"], "proof_task": "明确一个能在店内完成的演示"},
+    "新品首发": {"pain": "新品适合谁、与用户任务的联系及待确认项", "priorities": ["适合人群", "已证实的新品能力", "配置选择"], "proof_task": "核对具体SKU；不编造首发价格/权益"},
+    "节日营销": {"pain": "送礼对象和实际使用习惯匹配", "priorities": ["使用对象与任务", "选择建议", "到店确认"], "proof_task": "核对收礼者必用软件；不编造优惠、库存"},
+}
+
+BANNED = [
+    r"全网最(?:低|好|强)", r"全国最低", r"全球(?:第一|领先|最好)", r"行业第一", r"销量第一",
+    r"绝对(?:领先|安全|流畅|护眼)", r"永不(?:卡顿|故障|掉线)", r"百分之百", r"100\s*%",
+    r"零风险", r"终身免费", r"最(?:佳|好|强|低价|顶级)", r"唯一选择", r"闭眼入",
+    r"我(?:已经)?(?:用了|使用了|实测|亲测)", r"亲测", r"用了[一二三四五六七八九十\d]+(?:天|周|个月)",
+    r"保证.{0,6}(?:兼容|不卡|续航|流畅)", r"吊打", r"碾压", r"完胜",
+]
+DYNAMIC = re.compile(r"(?:[\d零〇一二两三四五六七八九十百千万]+(?:[\.点][\d零一二三四五六七八九]+)?\s*(?:元|块|折)|[¥￥]\s*\d|国补|补贴|赠品|限时优惠|库存仅剩|包邮|到手价|低至)")
+
+
+def normalize(text: str) -> str:
+    text = unicodedata.normalize("NFKC", str(text)).casefold()
+    return re.sub(r"[\s\-_（）()·]", "", text)
+
+
+def normalized_quote(text: str) -> str:
+    return re.sub(r"\s+", "", unicodedata.normalize("NFKC", str(text)))
+
+
+def exact_product(value: str, products: list[str]) -> str | None:
+    norm = normalize(value)
+    for product in products:
+        if norm == normalize(product) or norm == normalize(product.replace("HUAWEI ", "").replace("华为 ", "")):
+            return product
+    return None
+
+
+def validate_inputs(product: str, audience: str, scenario: str, platform: str, products: list[str]) -> tuple[str | None, list[str]]:
+    questions = []
+    canonical = exact_product(product, products)
+    if not canonical:
+        questions.append("请在产品下拉框选择准确型号，并确认年份、Windows/鸿蒙与款式；不能只填‘轻薄本’或模糊系列。")
+    if not audience or len(audience.strip()) < 2:
+        questions.append("这篇内容面向谁？例如大学新生、经常出差的职场用户或采购负责人。")
+    if scenario not in SCENE_RULES:
+        questions.append("请选择业务场景，或补充具体使用任务。")
+    if platform not in PLATFORM_RULES:
+        questions.append("请选择发布平台：小红书、微信公众号、门店朋友圈或门店海报。")
+    return canonical, questions
+
+
+def strategy_for(audience: str, scenario: str, platform: str, goal: str) -> dict:
+    scene = SCENE_RULES[scenario]
+    return {"audience": audience, "scenario": scenario, "goal": goal,
+            "platform": platform, "pain": scene["pain"], "priorities": scene["priorities"],
+            "proof_task": scene["proof_task"], **PLATFORM_RULES[platform]}
+
+
+def evidence_facts(extracted: dict, sources: list[dict]) -> tuple[list[dict], list[str]]:
+    """Accept a fact only when its quoted evidence is in the returned ima source."""
+    by_id = {s["id"]: s for s in sources}
+    facts, rejected = [], []
+    for item in extracted.get("facts", [])[:16]:
+        if not isinstance(item, dict):
+            continue
+        sid = str(item.get("source_id", ""))
+        quote = str(item.get("quote", "")).strip()
+        statement = str(item.get("statement", "")).strip()
+        source = by_id.get(sid)
+        if not source or len(quote) < 8 or not statement:
+            rejected.append("移除无有效来源或引文不足的事实候选。")
+            continue
+        if source.get("kind", "facts") != "facts":
+            rejected.append("营销案例或价格快照不作为产品事实依据。")
+            continue
+        if DYNAMIC.search(statement):
+            rejected.append("动态价格/权益未经当天核实，未作为营销事实。")
+            continue
+        if normalized_quote(quote) not in normalized_quote(source.get("text", "")):
+            rejected.append("移除无法在来源原文逐字定位的事实候选。")
+            continue
+        numbers = set(re.findall(r"\d+(?:\.\d+)?", unicodedata.normalize("NFKC", statement)))
+        evidence_numbers = set(re.findall(r"\d+(?:\.\d+)?", unicodedata.normalize("NFKC", quote)))
+        if numbers - evidence_numbers:
+            rejected.append("移除引文未支持数值的事实候选。")
+            continue
+        facts.append({"id": f"F{len(facts)+1}", "statement": statement, "quote": quote,
+                      "source_id": sid, "source_title": source.get("title", ""),
+                      "conditions": [str(x) for x in item.get("conditions", [])],
+                      "category": item.get("category", "feature")})
+        if len(facts) >= 12:
+            break
+    return facts, list(dict.fromkeys(rejected))
+
+
+def text_violations(text: str, facts: list[dict], product: str) -> list[str]:
+    text = unicodedata.normalize("NFKC", str(text))
+    violations = []
+    for pattern in BANNED:
+        hit = re.search(pattern, text, re.I)
+        if hit:
+            violations.append("营销表述需删除：" + hit.group(0))
+    if DYNAMIC.search(text):
+        violations.append("包含未经当天核实的价格、补贴或促销权益。")
+    numbers = set(re.findall(r"\d+(?:\.\d+)?", text))
+    evidence = unicodedata.normalize("NFKC", product + " ".join(f["quote"] for f in facts))
+    supported = set(re.findall(r"\d+(?:\.\d+)?", evidence))
+    if numbers - supported:
+        violations.append("出现来源未支持的数值：" + "、".join(sorted(numbers-supported)))
+    # Approximate measurements must not become exact claims during composition.
+    for value, unit in set(re.findall(r"约\s*(\d+(?:\.\d+)?)\s*(kg|g|mm|千克|克|毫米|小时|分钟)", evidence, re.I)):
+        pattern = r"(?<![\d.])" + re.escape(value) + r"\s*" + re.escape(unit)
+        for match in re.finditer(pattern, text, re.I):
+            before = text[max(0, match.start()-6):match.start()]
+            after = text[match.end():match.end()+4]
+            if not re.search(r"(?:约|大概|左右|近)\s*$", before) and not re.match(r"\s*(?:左右|上下)", after):
+                violations.append(f"测量值{value}{unit}须保留来源中的约数限定。")
+    return list(dict.fromkeys(violations))
+
+
+def draft_units(draft: dict, strategy: dict) -> list[dict]:
+    units = [{"id": "title", "text": str(draft.get("title", "")), "fact_ids": []},
+             {"id": "intro", "text": str(draft.get("intro", "")), "fact_ids": draft.get("intro_fact_ids", [])}]
+    for i, sec in enumerate(draft.get("sections", [])[:strategy["sections"]], 1):
+        if isinstance(sec, dict):
+            units.append({"id": f"section_{i}", "text": str(sec.get("text", "")),
+                          "heading": str(sec.get("heading", "")), "fact_ids": sec.get("fact_ids", [])})
+    for i, demo in enumerate(draft.get("demo_steps", [])[:3], 1):
+        if not isinstance(demo, dict):
+            continue
+        action, speech, observe = (str(demo.get(k, "")) for k in ("action", "speech", "observe"))
+        if action and speech:
+            units.append({"id": f"demo_{i}", "text": f"操作：{action}\n话术：{speech}\n验收：{observe}",
+                          "action": action, "speech": speech, "observe": observe,
+                          "fact_ids": demo.get("fact_ids", [])})
+    units.append({"id": "cta", "text": str(draft.get("cta", "")), "fact_ids": []})
+    if strategy["tags"]:
+        tags = draft.get("tags", [])
+        units.append({"id": "tags", "text": " ".join(str(t) for t in tags[:6]), "fact_ids": []})
+    return units

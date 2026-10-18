@@ -1,0 +1,180 @@
+"""Deterministic policy regression tests using synthetic evidence only."""
+from __future__ import annotations
+
+import unittest
+
+from policy import (PLATFORM_RULES, SCENE_RULES, draft_units, evidence_facts,
+                    exact_product, normalized_quote, strategy_for,
+                    text_violations, validate_inputs)
+
+
+PRODUCT = "HUAWEI MateBook Pro S"
+YEAR_PRODUCT = "HUAWEI MateBook D 14 2024"
+HARMONY_PRODUCT = "HUAWEI MateBook 14（鸿蒙版）"
+QUOTE = "屏幕尺寸为14.2英寸，刷新率为120 Hz。实际效果取决于内容与设置。"
+
+
+def source(kind="facts", text=QUOTE):
+    return {"id": "S1", "title": "Synthetic product evidence", "kind": kind, "text": text}
+
+
+def candidate(statement="屏幕尺寸为14.2英寸，刷新率为120 Hz。", quote=QUOTE, source_id="S1"):
+    return {"statement": statement, "quote": quote, "source_id": source_id,
+            "conditions": ["以具体版本和设置为准"], "category": "spec"}
+
+
+class InputPolicyTests(unittest.TestCase):
+    def test_exact_model_may_omit_brand_but_not_model_details(self):
+        products = [PRODUCT, YEAR_PRODUCT, HARMONY_PRODUCT]
+        self.assertEqual(exact_product("MateBook Pro S", products), PRODUCT)
+        self.assertEqual(exact_product(PRODUCT.lower(), products), PRODUCT)
+        self.assertIsNone(exact_product("MateBook", products))
+        self.assertIsNone(exact_product("华为轻薄本", products))
+        self.assertIsNone(exact_product("MateBook Pro", products))
+
+    def test_model_year_and_operating_system_cannot_be_substituted(self):
+        products = [YEAR_PRODUCT, HARMONY_PRODUCT]
+        self.assertIsNone(exact_product("HUAWEI MateBook D 14 2025", products))
+        self.assertIsNone(exact_product("HUAWEI MateBook D 14", products))
+        self.assertIsNone(exact_product("HUAWEI MateBook 14（Windows版）", products))
+        self.assertIsNone(exact_product("HUAWEI MateBook 14", products))
+
+    def test_missing_fields_produce_specific_questions(self):
+        canonical, questions = validate_inputs("", "", "", "", [PRODUCT])
+        self.assertIsNone(canonical)
+        self.assertEqual(len(questions), 4)
+
+    def test_complete_valid_task_does_not_need_clarification(self):
+        canonical, questions = validate_inputs(PRODUCT, "大学新生", "开学季", "小红书", [PRODUCT])
+        self.assertEqual(canonical, PRODUCT)
+        self.assertEqual(questions, [])
+
+    def test_platform_and_scene_rules_have_distinct_operating_constraints(self):
+        poster = strategy_for("门店顾客", "门店到访", "门店海报", "预约到访")
+        moments = strategy_for("门店顾客", "职场办公", "门店朋友圈", "预约到访")
+        red = strategy_for("大学新生", "开学季", "小红书", "种草了解")
+        self.assertEqual(poster["image_max"], 1)
+        self.assertEqual(moments["sections"], 1)
+        self.assertTrue(red["tags"])
+        self.assertFalse(poster["tags"])
+        self.assertNotEqual(red["pain"], moments["pain"])
+        self.assertEqual(set(PLATFORM_RULES), {"小红书", "微信公众号", "门店朋友圈", "门店海报"})
+        self.assertIn("企业采购", SCENE_RULES)
+
+
+class EvidencePolicyTests(unittest.TestCase):
+    def test_valid_quote_is_located_and_preserves_conditions(self):
+        facts, rejected = evidence_facts({"facts": [candidate()]}, [source()])
+        self.assertEqual(rejected, [])
+        self.assertEqual(len(facts), 1)
+        self.assertEqual(facts[0]["id"], "F1")
+        self.assertEqual(facts[0]["source_id"], "S1")
+        self.assertEqual(facts[0]["conditions"], ["以具体版本和设置为准"])
+
+    def test_whitespace_and_fullwidth_typography_are_normalized_not_meaning(self):
+        self.assertEqual(normalized_quote("１２０ Hz\n"), "120Hz")
+        for typography in ("120\nHz", "１２０\nHz"):
+            with self.subTest(typography=typography):
+                facts, _ = evidence_facts({"facts": [candidate(quote=QUOTE.replace("120 Hz", typography))]}, [source()])
+                self.assertEqual(len(facts), 1)
+
+    def test_paraphrase_cannot_masquerade_as_exact_quote(self):
+        facts, rejected = evidence_facts({"facts": [candidate(quote="这块屏幕为14.2英寸且支持120 Hz刷新率。") ]}, [source()])
+        self.assertEqual(facts, [])
+        self.assertTrue(any("逐字" in reason for reason in rejected))
+
+    def test_missing_source_and_tiny_quote_fail_closed(self):
+        for entry in (candidate(source_id="S999"), candidate(quote="屏幕")):
+            with self.subTest(entry=entry):
+                facts, rejected = evidence_facts({"facts": [entry]}, [source()])
+                self.assertEqual(facts, [])
+                self.assertTrue(rejected)
+
+    def test_statement_cannot_invent_numbers_absent_from_its_quote(self):
+        facts, rejected = evidence_facts({"facts": [candidate(statement="屏幕刷新率为240 Hz。") ]}, [source()])
+        self.assertEqual(facts, [])
+        self.assertTrue(any("数值" in reason for reason in rejected))
+
+    def test_price_source_is_not_accepted_as_product_fact(self):
+        facts, rejected = evidence_facts({"facts": [candidate()]}, [source(kind="price")])
+        self.assertEqual(facts, [])
+        self.assertTrue(rejected)
+
+    def test_marketing_source_is_not_accepted_as_product_fact(self):
+        facts, rejected = evidence_facts({"facts": [candidate()]}, [source(kind="marketing")])
+        self.assertEqual(facts, [])
+        self.assertTrue(rejected)
+
+    def test_dynamic_price_and_subsidy_are_not_evidence_facts(self):
+        for statement in ("售价5999元。", "售价五千元。", "现在八折。", "可享国补。", "支持补贴。", "赠品充足。"):
+            with self.subTest(statement=statement):
+                facts, rejected = evidence_facts({"facts": [candidate(statement=statement)]}, [source()])
+                self.assertEqual(facts, [])
+                self.assertTrue(rejected)
+
+    def test_exact_quote_is_necessary_but_not_a_semantic_entailment_proof(self):
+        # This deterministic layer intentionally cannot prove entailment. Agent tests
+        # require a separate fact-review call before unsupported claims reach compose.
+        unsupported = candidate(statement="屏幕支持十点触控。")
+        facts, _ = evidence_facts({"facts": [unsupported]}, [source()])
+        self.assertEqual(len(facts), 1)
+
+
+class PublicationPolicyTests(unittest.TestCase):
+    def setUp(self):
+        self.facts, _ = evidence_facts({"facts": [candidate()]}, [source()])
+
+    def test_supported_screen_values_are_not_invented_numbers(self):
+        self.assertEqual(text_violations("屏幕为14.2英寸，刷新率为120 Hz。", self.facts, PRODUCT), [])
+
+    def test_unverified_numeric_value_is_rejected(self):
+        self.assertTrue(any("数值" in x for x in text_violations("续航达到99小时。", self.facts, PRODUCT)))
+
+    def test_prices_subsidies_first_person_and_absolute_claims_are_rejected(self):
+        statements = ["到手价5999元。", "售价五千元。", "现在八折。", "可享国补。", "买赠品。", "我亲测非常流畅。",
+                      "我用了三天。", "全网最低。", "闭眼入。", "绝对安全。", "永不卡顿。"]
+        for statement in statements:
+            with self.subTest(statement=statement):
+                self.assertTrue(text_violations(statement, self.facts, PRODUCT))
+
+    def test_plain_sku_confirmation_advice_is_allowed(self):
+        self.assertEqual(text_violations("建议携带常用软件清单，到店确认具体版本。", self.facts, PRODUCT), [])
+
+    def test_draft_units_enforce_platform_section_limit(self):
+        strategy = strategy_for("顾客", "门店到访", "门店朋友圈", "预约")
+        draft = {"title": "任务清单", "intro": "先确认任务。", "sections": [
+            {"heading": "A", "text": "第一段", "fact_ids": ["F1"]},
+            {"heading": "B", "text": "第二段", "fact_ids": ["F1"]}], "cta": "到店咨询。", "tags": ["#选购"]}
+        units = draft_units(draft, strategy)
+        self.assertEqual(len([x for x in units if x["id"].startswith("section_")]), 1)
+        self.assertFalse(any(x["id"] == "tags" for x in units))
+
+
+class StoreDemoUnitTests(unittest.TestCase):
+    def setUp(self):
+        self.strategy = strategy_for("门店顾客", "门店到访", "门店朋友圈", "预约")
+        self.demo = {"action": "请顾客打开自带资料页。", "speech": "按常用任务核对具体版本。",
+                     "observe": "请顾客确认阅读是否清楚。", "fact_ids": ["F1"]}
+
+    def test_demo_action_speech_observe_and_references_share_one_auditable_unit(self):
+        units = draft_units({"demo_steps": [self.demo]}, self.strategy)
+        demo = next(unit for unit in units if unit["id"] == "demo_1")
+        self.assertEqual(demo["fact_ids"], ["F1"])
+        for field in ("action", "speech", "observe"):
+            self.assertEqual(demo[field], self.demo[field])
+            self.assertIn(self.demo[field], demo["text"])
+        self.assertFalse(any(unit["id"].startswith("section_") for unit in units))
+
+    def test_demo_script_is_bounded_to_three_steps(self):
+        units = draft_units({"demo_steps": [self.demo] * 5}, self.strategy)
+        self.assertEqual([unit["id"] for unit in units if unit["id"].startswith("demo_")],
+                         ["demo_1", "demo_2", "demo_3"])
+
+    def test_demo_without_action_or_speech_is_not_sent_as_complete_script(self):
+        incomplete = [{**self.demo, "action": ""}, {**self.demo, "speech": ""}, "invalid"]
+        units = draft_units({"demo_steps": incomplete}, self.strategy)
+        self.assertFalse(any(unit["id"].startswith("demo_") for unit in units))
+
+
+if __name__ == "__main__":
+    unittest.main()

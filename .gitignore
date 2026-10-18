@@ -4,8 +4,21 @@ __pycache__/
 venv/
 .env
 .env.*
+!.env.example
 .DS_Store
 Thumbs.db
 *.log
 .idea/
 .vscode/
+
+# Private knowledge and generated submission evidence
+*.zip
+.zks/
+.local/
+.cache/
+submission/
+artifacts/
+evidence/
+*_secrets.json
+zhiheng-private-archive/
+~$*
