@@ -445,8 +445,126 @@ def load_example(index: int, catalog: list[str]) -> tuple:
 
 
 def build_demo() -> gr.Blocks:
-    from studio_ui import build_studio
-    return build_studio(EXAMPLES, FALLBACK_PRODUCTS, DESKTOP_HTML)
+    # Gradio 6 的主题与 CSS 由 launch 接收，不传入 Blocks。
+    with gr.Blocks(title=APP_TITLE, analytics_enabled=False) as app:
+        catalog_state = gr.State(list(FALLBACK_PRODUCTS))
+        request_state = gr.State({})
+        gr.HTML(DESKTOP_HTML)
+        gr.Markdown("## 知衡 · 华为PC图文营销智能体\n自研流程完成客户洞察、事实检索、图文创作、门店演示与独立核验。", elem_id="zh-app-title")
+        gr.Markdown("选产品、填人群 → 生成图文方案 → 核对来源后复制、下载；需要调整时，填写修改要求重写。", elem_id="zh-guide")
+        with gr.Row(elem_id="zh-connection"):
+            with gr.Column(scale=8):
+                connection = gr.Markdown("正在核对资料模式与共享库授权…", elem_id="zh-connection-body")
+            with gr.Column(scale=1, min_width=130):
+                refresh_button = gr.Button("刷新资料状态", size="sm", elem_id="zh-refresh")
+        with gr.Row(elem_id="zh-workspace"):
+            with gr.Column(scale=4, min_width=310, elem_id="zh-inputs"):
+                gr.Markdown("### 01 / 描述这次营销需求\n从一个具体的人群和场景开始。", elem_classes="zh-section")
+                product = gr.Dropdown(
+                    choices=FALLBACK_PRODUCTS,
+                    value=None,
+                    label="产品型号",
+                    info="支持直接输入；型号不明确时，智能体会进一步追问。",
+                    allow_custom_value=True,
+                    filterable=True,
+                    interactive=True,
+                )
+                audience = gr.Textbox(label="目标人群", placeholder="例如：准备开学、注重学习效率的大学生", lines=2, max_lines=4)
+                with gr.Row():
+                    scenario = gr.Dropdown(choices=SCENARIOS, value="开学季", label="营销场景", interactive=True)
+                    platform = gr.Dropdown(choices=PLATFORMS, value="小红书", label="发布渠道", interactive=True)
+                goal = gr.Dropdown(choices=GOALS, value="种草了解", label="营销目标", interactive=True)
+                requirements = gr.Textbox(
+                    label="补充要求 / 华为官方商城商品链接（选填）",
+                    placeholder="语气、篇幅、门店信息，或 https://www.vmall.com/product/商品编号.html",
+                    lines=3,
+                    max_lines=6,
+                )
+                generate_button = gr.Button("生成图文方案  →", variant="primary", elem_id="zh-generate")
+                gr.Markdown("**试试这三个场景** · 点击只填入需求", elem_classes="zh-section")
+                with gr.Row(elem_id="zh-examples"):
+                    example_buttons = [gr.Button(label, size="sm", min_width=100) for label in ["开学季 · 小红书", "办公选购 · 公众号", "门店体验 · 朋友圈"]]
+                with gr.Accordion("修改这份方案", open=True):
+                    revision = gr.Textbox(
+                        label="修改要求",
+                        placeholder="例如：缩短至 150 字，语气更自然，把到店邀请放在结尾。",
+                        info="沿用最近一次生成的需求；更换产品或人群后，请重新生成。",
+                        lines=2,
+                    )
+                    revise_button = gr.Button("按修改要求重写", interactive=False, elem_id="zh-revise")
+            with gr.Column(scale=7, min_width=360, elem_id="zh-results"):
+                gr.Markdown("### 02 / 查看图文方案\n从内容到依据，在同一处完成检查与交付。", elem_classes="zh-section")
+                status_output = gr.Markdown("### 准备好，让知识变成内容\n填写左侧需求，或先选择一个场景示例。", elem_id="zh-status")
+                with gr.Tabs(elem_id="zh-tabs"):
+                    with gr.Tab("图文成稿预览"):
+                        preview = gr.HTML(
+                            '<div style="padding:28px 16px;color:#5c7185;text-align:center">'
+                            '<p style="font-size:18px;color:#173d56;font-weight:600">让文字与图片，一起讲清产品价值。</p>'
+                            '<p>生成后，在这里预览按段落编排的文案与 同型号知识库配图。</p></div>',
+                            elem_id="zh-preview",
+                        )
+                    with gr.Tab("完整报告"):
+                        report = gr.Markdown(
+                            "## 你的下一份营销内容，从这里开始\n\n生成后将展示需求策略、最终文案、图文编排与来源核验。\n\n"
+                            "> 具体产品参数、价格与活动信息以可核验资料为依据；信息不足时会先向你追问。",
+                            elem_id="zh-report",
+                        )
+                    with gr.Tab("最终文案"):
+                        copy_text = gr.Textbox(label="可复制文案", value="", placeholder="生成后在这里直接复制文案。", lines=20, max_lines=35, buttons=["copy"], interactive=False)
+                    with gr.Tab("知识库配图"):
+                        gr.Markdown("配图只取自同型号共享库资料。实时 ima、ima 缓存或获授权主办方归档模式以页面状态和核验记录为准。")
+                        gallery = gr.Gallery(label="知识库同型号原图",  columns=2, rows=2, height=430, object_fit="contain", show_label=False, elem_id="zh-images")
+                        image_sources = gr.Markdown("生成后展示图片来源、说明与建议插入位置。", elem_id="zh-image-sources")
+                    with gr.Tab("事实与核验"):
+                        checks = gr.JSON(label="核验结果", value={"说明": "生成后展示事实、表达与图文核验结果。"})
+                        with gr.Accordion("查看引用事实", open=False):
+                            facts = gr.JSON(label="事实依据", value=[])
+                        with gr.Accordion("查看营销策略", open=False):
+                            strategy = gr.JSON(label="策略", value={})
+                    with gr.Tab("执行与下载"):
+                        trace = gr.Dataframe(headers=["阶段", "状态", "说明", "耗时（秒）"], datatype=["str", "str", "str", "number"], value=[], interactive=False, wrap=True, label="执行轨迹")
+                        gr.Markdown("**下载完整方案** · Markdown 便于编辑，JSON 便于保存结构化结果。")
+                        with gr.Row():
+                            markdown_file = gr.File(label="Markdown 报告", file_types=[".md", ".markdown"], interactive=False)
+                            json_file = gr.File(label="JSON 结果", file_types=[".json"], interactive=False)
+        gr.Markdown(
+            "知衡意为知识来源与核验 · 浙客松 2026 参赛作品，由团队独立开发，非华为官方产品。\n\n"
+            "[GitHub](https://github.com/xiaoma-iqoo/zhekesong-huawei-2026) · "
+            "[ModelScope 创空间](https://www.modelscope.cn/studios/xiaoma2008/zhekesong-huawei-2026)",
+            elem_id="zh-footer",
+        )
+        inputs = [product, audience, scenario, platform, goal, requirements]
+        outputs = [status_output, report, copy_text, gallery, image_sources, checks, facts, strategy, trace, markdown_file, json_file, request_state, revise_button, preview]
+        generate_button.click(
+            generate_copy,
+            inputs=inputs,
+            outputs=outputs,
+            api_name="generate_copy",
+            concurrency_limit=1,
+            concurrency_id="zhiheng_generation",
+            trigger_mode="once",
+            show_progress="full",
+        )
+        revise_button.click(
+            revise_copy,
+            inputs=[revision, request_state],
+            outputs=outputs,
+            api_name="revise_copy",
+            concurrency_limit=1,
+            concurrency_id="zhiheng_generation",
+            trigger_mode="once",
+            show_progress="full",
+        )
+        for index, button in enumerate(example_buttons):
+            def fill_example(catalog, index=index):
+                return load_example(index, catalog)
+
+            button.click(fill_example, inputs=[catalog_state], outputs=inputs, api_visibility="private", queue=False)
+        connection_inputs = [product, catalog_state]
+        connection_outputs = [connection, product, catalog_state]
+        refresh_button.click(refresh_connection, inputs=connection_inputs, outputs=connection_outputs, api_visibility="private", concurrency_limit=1, concurrency_id="zhiheng_generation", trigger_mode="once")
+        app.load(refresh_connection, inputs=connection_inputs, outputs=connection_outputs, api_visibility="private", concurrency_limit=1, concurrency_id="zhiheng_generation")
+    return app
 
 
 demo = build_demo()
