@@ -79,7 +79,7 @@ pip install -r requirements.txt
 ```bash
 export IMA_OPENAPI_CLIENTID="YOUR_CLIENT_ID"
 export IMA_OPENAPI_APIKEY="YOUR_API_KEY"
-export IMA_KB_NAME="任德耀新建华为PC知识库"
+export IMA_KB_NAME="YOUR_SHARED_KB_NAME"
 export LLM_BASE_URL="https://YOUR_OPENAI_COMPATIBLE_SERVICE/v1"
 export LLM_API_KEY="YOUR_MODEL_KEY"
 export LLM_MODEL="YOUR_JSON_CAPABLE_MODEL"
@@ -106,7 +106,7 @@ python -m py_compile app.py agent.py ima_client.py llm_client.py policy.py promp
 python -m unittest discover -s tests -v
 ```
 
-当前离线回归 76 项通过，使用合成资料、合成图片和 mock，并阻断外部请求；覆盖引用与数值、年份/系统、价格补贴、审核遗漏、冲突停止、图片门槛、缓存来源标注、密钥和签名 URL 不进入导出。它们证明编排及门控行为，不能代替真实模型质量评估。另已执行真实 ima 调用及真实模型任务，优秀结果与限制随初赛作品说明书提交。
+当前离线回归 108 项通过，使用合成资料、合成图片和 mock，并阻断外部请求；覆盖引用与数值、年份/系统、价格补贴、审核遗漏、冲突停止、图片门槛、缓存来源标注、密钥和签名 URL 不进入导出。它们证明编排及门控行为，不能代替真实模型质量评估。另已执行真实 ima 调用及真实模型任务，优秀结果与限制随初赛作品说明书提交。
 
 ## 代码位置
 
@@ -119,6 +119,7 @@ python -m unittest discover -s tests -v
 | [llm_client.py](llm_client.py) | OpenAI 兼容 JSON 调用、超时、重试和进程预算 |
 | [prompts.py](prompts.py) / [policy.py](policy.py) | 完整系统提示词与业务规则 |
 | [preview.py](preview.py) | 转义文本、按原比例内嵌图片的成稿预览 |
+| [public_payload.py](public_payload.py) | 公开输出边界的敏感字段与签名 URL 脱敏 |
 | [tests](tests) | 无外网回归测试 |
 
 初赛提交：项目名称、GitHub 仓库链接、ModelScope 链接、含真实运行结果和完整提示词的作品说明书。演示视频属于复赛材料，初赛不以占位文案或伪造日志代替运行证据。

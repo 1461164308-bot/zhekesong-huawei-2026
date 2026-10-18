@@ -1,7 +1,7 @@
 """ZhiHeng: retrieval -> grounded facts -> platform writing -> independent review.
 
 No bundled product answers or fixed marketing results. Every successful run uses
-live ima material and independent generation/review calls. Credentials are only
+live ima material or an explicitly authorized archive, plus independent model calls. Credentials are only
 read from server environment and never included in the result or exported files.
 """
 from __future__ import annotations
@@ -21,6 +21,8 @@ from policy import (PLATFORM_RULES, SCENE_RULES, draft_units, evidence_facts,
                     normalize, strategy_for, text_violations, validate_inputs)
 from prompts import EXTRACT_PROMPT, COMPOSE_PROMPT, AUDIT_PROMPT, FACT_REVIEW_PROMPT
 from preview import build_preview
+from public_payload import sanitize_public
+from PIL import Image
 
 PLATFORMS = list(PLATFORM_RULES)
 SCENARIOS = list(SCENE_RULES)
@@ -29,8 +31,11 @@ VERSION = "1.0.0"
 
 @lru_cache(maxsize=1)
 def _ima() -> IMAClient:
+    mode = os.environ.get("IMA_SOURCE_MODE", "live").strip().lower()
+    if mode not in {"live", "archive"}:
+        raise IMAError("资料模式配置无效，请部署者将 IMA_SOURCE_MODE 设为 live 或 archive。")
     client = IMAClient()
-    if os.environ.get("IMA_SOURCE_MODE", "live").lower() == "archive":
+    if mode == "archive":
         from knowledge_store import get_archive_path
         path = get_archive_path()
         if not path:
@@ -71,7 +76,21 @@ def _empty(status: str, report: str, trace: list | None = None, **extra) -> dict
               "facts": [], "images": [], "checks": {"publication": "未交付可发布文案"},
               "trace": trace or [], "export_markdown": None, "export_json": None, "preview_html": ""}
     result.update(extra)
-    return result
+    return sanitize_public(result)
+
+
+def _displayable_image(image: dict) -> bool:
+    try:
+        path = Path(str(image.get("path", "")))
+        if not path.is_file():
+            return False
+        with Image.open(path) as picture:
+            if picture.width * picture.height > 40_000_000:
+                return False
+            picture.load()
+        return True
+    except (OSError, ValueError, Image.DecompressionBombError):
+        return False
 
 
 def _public_sources(sources: list[dict]) -> list[dict]:
@@ -217,25 +236,35 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         if questions:
             return _empty("needs_clarification", "### 需要先确认的信息\n\n" + "\n".join("- " + q for q in questions), trace)
         product = canonical
-        task = {"product": product, "audience": audience, "scenario": scenario, "platform": platform,
-                "goal": goal, "requirements": requirements, "revision": revision}
-        strategy = strategy_for(audience, scenario, platform, goal)
+        task = sanitize_public({"product": product, "audience": audience, "scenario": scenario, "platform": platform,
+                                "goal": goal, "requirements": requirements, "revision": revision})
+        audience, requirements = task["audience"], task["requirements"]
+        strategy = strategy_for(audience, scenario, platform, task["goal"])
         step("场景与平台策略", 0.1, f"已确定{scenario}的使用问题与{platform}的结构/配图规则。")
         result = _ima().retrieve(product, query=f"{scenario} {audience} {requirements}", max_sources=5,
                                   max_images=strategy["image_max"])
         if normalize(result.get("product", "")) != normalize(product):
             return _empty("blocked", "### 型号核对未通过\n\n检索返回的型号与任务不一致，本次停止生成，请重新选择准确型号。", trace)
+        mode = result.get("retrieval_mode", "live_ima")
+        valid_origins = {"live_ima", "ima_cache", "offline_archive"}
+        origins = {item.get("origin", mode) for item in result.get("sources", []) + result.get("images", [])}
+        source_mismatch = (mode not in valid_origins | {"mixed"}
+                           or bool(result.get("offline_archive", False)) != (mode == "offline_archive")
+                           or not origins <= valid_origins
+                           or (mode != "mixed" and bool(origins - {mode}))
+                           or (mode == "mixed" and "offline_archive" in origins))
+        if source_mismatch:
+            return _empty("blocked", "### 资料来源模式未通过核对\n\n返回的来源标记未知或互相矛盾，请部署者检查配置；本次未调用写作模型。", trace)
         sources = [s for s in result.get("sources", []) if s.get("text")]
         if not sources:
             return _empty("blocked", "### 没有可用的事实依据\n\n未能获取该型号的 ima 原文，本次停止生成。请使用 ima 客户端确认资料权限。", trace)
         images = [i.copy() for i in result.get("images", []) if normalize(i.get("model", "")) == normalize(product)
-                  and Path(str(i.get("path", ""))).is_file()]
+                  and _displayable_image(i)]
         if len(images) < strategy["image_min"]:
             return _empty("needs_clarification", f"### 同型号配图数量不足\n\n{platform}需要至少{strategy['image_min']}张图片，本次只有{len(images)}张可验证的同型号素材。请补充获授权的同型号图库，或换用图片数量要求较少的平台。\n\n没有使用其他型号图片凑数。", trace,
                           strategy=strategy, checks={"publication": "配图不足，未交付文案"})
-        mode = result.get("retrieval_mode", "live_ima")
         mode_label = {"live_ima": "实时 ima", "ima_cache": "ima 已检索缓存",
-                      "offline_archive": "主办方 ZIP 缓存（非实时 ima）", "mixed": "ima 检索与缓存混合"}.get(mode, "资料来源待确认")
+                      "offline_archive": "主办方 ZIP 缓存（非实时 ima）", "mixed": "ima 检索与缓存混合"}[mode]
         step("知识库资料与配图检索", 0.3, f"{mode_label}：已读取{len(sources)}份型号资料、{len(images)}张同型号原图。")
         model = LLMClient()
         # Full per-product facts/limits are supplied; historical marketing/price docs are not trusted facts.
@@ -281,6 +310,8 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         strategy["angle"] = str(draft.get("angle", strategy["pain"]))
         strategy["selected_priorities"] = [str(x) for x in draft.get("priorities", strategy['priorities'])]
         units = draft_units(draft, strategy)
+        if strategy.get("customer_insight"):
+            units.append({"id": "customer_insight", "text": json.dumps(strategy["customer_insight"], ensure_ascii=False), "fact_ids": []})
         step("图文编排与软文生成", 0.7, "已按人群、场景与平台生成草稿，进入独立审核。")
         audit = model.json(AUDIT_PROMPT, {"task": task, "units": units, "facts": facts,
                            "constraints": extracted.get("constraints", []), "available_images": image_meta,
@@ -294,12 +325,18 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
             if not unit["text"].strip():
                 continue
             verdict = reviewed.get(unit["id"], {})
-            issues = text_violations(unit.get("heading", "") + " " + unit["text"], facts, product)
+            unit_facts = [fact for fact in facts if fact["id"] in unit.get("fact_ids", [])]
+            issues = text_violations(unit.get("heading", "") + " " + unit["text"], unit_facts, product)
             invalid_refs = set(unit.get("fact_ids", [])) - allowed_ids
             if invalid_refs:
                 issues.append("引用了未通过校验的事实编号。")
             if verdict.get("verdict") != "pass":
                 issues.append(str(verdict.get("reason", "审核节点未确认该单元。")))
+            if unit["id"] == "customer_insight":
+                if issues:
+                    strategy.pop("customer_insight", None)
+                    removed.append({"id": unit["id"], "reason": "；".join(issues)})
+                continue
             if issues:
                 removed.append({"id": unit["id"], "reason": "；".join(issues)})
                 if unit["id"] == "title":
@@ -340,7 +377,8 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         selected = selected[:strategy['image_max']]
         warnings = list(result.get("warnings", [])) + rejected
         if len(selected) < strategy["image_min"]:
-            warnings.append(f"该平台建议至少{strategy['image_min']}张图，本次只有{len(selected)}张可验证素材，不用其他型号凑数。")
+            return _empty("needs_clarification", "### 同型号配图数量不足\n\n未能完成平台要求的图文编排，请补充获授权素材或更换平台；本次不交付文案。", trace,
+                          strategy=strategy, checks={"publication": "配图不足，未交付文案"})
         pending = [str(x) for x in extracted.get("unknowns", [])] + [str(x) for x in audit.get("warnings", [])]
         pending.append("当天价格、补贴、库存、赠品及具体销售SKU需另行人工确认，未写入本稿。")
         demos = [{k: u[k] for k in ("action", "speech", "observe", "fact_ids")}
@@ -354,23 +392,37 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
                   "removed_units": removed, "rejected_requests": [str(x) for x in draft.get("rejected_requests", [])],
                   "pending": list(dict.fromkeys(pending)), "warnings": warnings,
                   "model": model.model, "total_seconds": round(time.perf_counter()-started, 2)}
+        public = sanitize_public({"task": task, "strategy": strategy, "facts": facts,
+                                  "accepted": accepted, "images": selected, "checks": checks,
+                                  "sources": _public_sources(sources)})
+        task, strategy, facts = public["task"], public["strategy"], public["facts"]
+        accepted, selected, checks = public["accepted"], public["images"], public["checks"]
         copy = _format_copy(accepted, product, strategy)
         checks["copy_chinese_chars"] = len(re.findall(r"[\u4e00-\u9fff]", copy))
-        checks["writing_repairs"] = repair
-        report = _report(task, strategy, facts, copy, selected, checks, sources)
+        checks["writing_repairs"] = sanitize_public(repair)
+        body_copy = "".join(u["text"] for u in accepted if u["id"] in {"intro", "cta"} or u["id"].startswith("section_"))
+        checks["body_chinese_chars"] = len(re.findall(r"[\u4e00-\u9fff]", body_copy))
+        minimum = {"小红书": 350, "微信公众号": 650, "门店朋友圈": 80, "门店海报": 40}[platform]
+        checks["length_target_met"] = minimum <= checks["body_chinese_chars"] <= max_chars
+        if not checks["length_target_met"]:
+            checks["warnings"].append("审核删减后正文篇幅未达平台目标；保留已核验内容，建议修改后再发布。")
+        preview = build_preview(accepted, selected, task, mode_label)
+        if preview.count('<img src="data:image/') < strategy["image_min"]:
+            return _empty("needs_clarification", "### 配图预览校验失败\n\n图片无法完整显示，未达到平台最低图数；请补充可读取的同型号素材后重试。", trace)
+        report = _report(task, strategy, facts, copy, selected, checks, public["sources"])
         step("事实、图片与合规核验", 0.94, f"已审核{len(units)}个文本单元，拦截{len(removed)}项风险；核对{len(selected)}张图片。")
         out_dir = Path(tempfile.mkdtemp(prefix="zhiheng-export-"))
         md = out_dir / "知衡-图文营销方案.md"
         js = out_dir / "知衡-核验记录.json"
         md.write_text(report, encoding="utf-8")
-        preview = build_preview(accepted, selected, task, mode_label)
         public_images = [{k: v for k, v in i.items() if k in ("id", "title", "caption", "placement", "slot", "source_title", "source_id", "model", "origin")} for i in selected]
-        artifact = {"version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
-                    "retrieval_mode": mode, "data_mode_label": mode_label, "task": task,
-                    "strategy": strategy, "facts": facts, "sources": _public_sources(sources),
-                    "copy_text": copy, "images": public_images, "checks": checks, "trace": trace}
         step("导出", 1.0, "已生成图文方案 Markdown 与可追溯核验 JSON。")
         checks["total_seconds"] = round(time.perf_counter()-started, 2)
+        trace = sanitize_public(trace)
+        artifact = {"version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "retrieval_mode": mode, "data_mode_label": mode_label, "task": task,
+                    "strategy": strategy, "facts": facts, "sources": public["sources"],
+                    "copy_text": copy, "images": public_images, "checks": checks, "trace": trace}
         js.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
         return {"status": "ready", "report": report, "copy_text": copy, "strategy": strategy,
                 "facts": facts, "images": selected, "checks": checks, "trace": trace,

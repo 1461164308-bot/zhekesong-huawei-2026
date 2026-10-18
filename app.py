@@ -63,6 +63,9 @@ CSS = """
   --zh-border: #dce6ed;
 }
 .gradio-container {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
   max-width: 1440px !important;
   margin: 0 auto !important;
   padding: 26px 28px 18px !important;
@@ -127,8 +130,19 @@ CSS = """
 #zh-footer { text-align: center; padding: 9px 6px 1px; font-size: 12px; color: #728497; }
 #zh-footer a { color: #377b85; text-decoration: none; }
 #zh-footer p { margin: 5px 0; }
+.gradio-container .main, .gradio-container .wrap {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
 @media (max-width: 860px) {
   .gradio-container { padding: 14px 12px !important; }
+  .gradio-container > .main { padding: 0 !important; }
+  #zh-workspace { flex-direction: column; flex-wrap: nowrap; }
+  #zh-inputs, #zh-results { min-width: 0 !important; width: 100% !important; box-sizing: border-box; flex: 1 1 auto !important; }
+  #zh-connection { flex-direction: column; }
+  #zh-connection > .column, .gradio-container .block { min-width: 0 !important; }
+  .gradio-container .prose { overflow-wrap: anywhere; }
   #zh-hero { padding: 24px 21px; border-radius: 17px; }
   #zh-inputs, #zh-results { padding: 16px; }
   #zh-workspace { gap: 13px; }
@@ -257,7 +271,7 @@ def _image_outputs(images: Any) -> tuple[list, str]:
             lines.append("- 图片状态：本地图片暂不可用，请查看报告中的配图说明。")
         notes.append("\n".join(lines))
     if not notes:
-        return [], "本次未返回可展示的 ima 真实配图。请查看报告中的说明，或补充产品信息后重试。"
+        return [], "本次未返回可展示的 同型号知识库配图。请查看报告中的说明，或补充产品信息后重试。"
     return gallery, "\n\n".join(notes)
 
 
@@ -486,7 +500,7 @@ def build_demo() -> gr.Blocks:
                         preview = gr.HTML(
                             '<div style="padding:28px 16px;color:#5c7185;text-align:center">'
                             '<p style="font-size:18px;color:#173d56;font-weight:600">让文字与图片，一起讲清产品价值。</p>'
-                            '<p>生成后，在这里预览按段落编排的文案与 ima 真实配图。</p></div>',
+                            '<p>生成后，在这里预览按段落编排的文案与 同型号知识库配图。</p></div>',
                             elem_id="zh-preview",
                         )
                     with gr.Tab("完整报告"):
@@ -548,8 +562,8 @@ def build_demo() -> gr.Blocks:
             button.click(fill_example, inputs=[catalog_state], outputs=inputs, api_visibility="private", queue=False)
         connection_inputs = [product, catalog_state]
         connection_outputs = [connection, product, catalog_state]
-        refresh_button.click(refresh_connection, inputs=connection_inputs, outputs=connection_outputs, api_visibility="private", concurrency_limit=1, concurrency_id="zhiheng_connection", trigger_mode="once")
-        app.load(refresh_connection, inputs=connection_inputs, outputs=connection_outputs, api_visibility="private", concurrency_limit=1, concurrency_id="zhiheng_connection")
+        refresh_button.click(refresh_connection, inputs=connection_inputs, outputs=connection_outputs, api_visibility="private", concurrency_limit=1, concurrency_id="zhiheng_generation", trigger_mode="once")
+        app.load(refresh_connection, inputs=connection_inputs, outputs=connection_outputs, api_visibility="private", concurrency_limit=1, concurrency_id="zhiheng_generation")
     return app
 
 

@@ -102,7 +102,7 @@ AUDIT_PROMPT = COMMON + """
 customer_insight单元分析用户需求，不代表产品事实；若夹带未被facts支持的产品功能或规格也必须删除。
 无法确认的推断、条件缺失或把『支持/可选/最高』改成无条件承诺，必须remove。
 特别注意：轻不等于长续航；OLED不等于绝对护眼；鸿蒙不等于全软件兼容。
-输出 {"units":[{"id":"title|intro|section_1|cta|tags", "verdict":"pass|remove",
+输出 {"units":[{"id":"title|intro|section_1|demo_1|customer_insight|cta|tags", "verdict":"pass|remove",
 "reason":"依据或移除原因", "fact_ids":["F1"]}],
 "warnings":["人审仍需核对的条件"], "conflict":false}。
 每个输入unit必须有对应审查结果；遗漏将被程序视为remove。不要重写文案。

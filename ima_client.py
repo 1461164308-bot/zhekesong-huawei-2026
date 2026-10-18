@@ -24,7 +24,8 @@ class IMAError(Exception):
 
 
 _API = "https://ima.qq.com/openapi/wiki/v1/"
-_DEFAULT_KB = "任德耀新建华为PC知识库"
+# The shared knowledge base name is deployment configuration, never a code default.
+_DEFAULT_KB = ""
 _URL_RE = re.compile(r"https?://[^\s<>\]\)\"']+", re.I)
 _FORBIDDEN = re.compile(r"竞品|对比|历史归档|待审核|MacBook|ThinkPad|联想|惠普|戴尔", re.I)
 _SIGNED = re.compile(r"sign|signature|token|credential|authorization|expires|secret|api.?key", re.I)
@@ -86,7 +87,7 @@ class IMAClient:
     def __init__(self, *, timeout: float = 25, cache_ttl: float = 300):
         self._client_id = os.environ.get("IMA_OPENAPI_CLIENTID", "").strip()
         self._api_key = os.environ.get("IMA_OPENAPI_APIKEY", "").strip()
-        self.kb_name = os.environ.get("IMA_KB_NAME", _DEFAULT_KB).strip() or _DEFAULT_KB
+        self.kb_name = os.environ.get("IMA_KB_NAME", "").strip()
         self.timeout = timeout
         self.cache_ttl = cache_ttl
         self._kb = None
@@ -173,6 +174,8 @@ class IMAClient:
     def _resolve_kb(self) -> dict:
         if self._kb is not None and time.monotonic() - self._kb_time < self.cache_ttl:
             return self._kb
+        if not self.kb_name:
+            raise IMAError("未配置共享知识库名称：请由部署者设置服务端环境变量 IMA_KB_NAME。")
         items = self._pages("search_knowledge_base", {"query": self.kb_name, "limit": 20}, "info_list")
         matches = [x for x in items if (x.get("kb_name") or x.get("name")) == self.kb_name]
         if len(matches) != 1:
