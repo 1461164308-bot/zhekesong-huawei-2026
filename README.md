@@ -94,6 +94,8 @@ python app.py
 
 Windows PowerShell 对应写法为 `$env:变量名='值'`。默认只从服务端环境读取凭证，界面不要求评委填写密钥。
 
+**页面内可改 API：** 左侧「模型 API 设置（可选 · 仅本次会话）」可填写自己的 OpenAI 兼容服务地址、密钥与模型名。该配置只保存在当前会话的服务端状态中：不写入磁盘、不回显密钥、不进入报告与导出；自定义接口强制 HTTPS，且不会自动切换到服务器配置的备用模型。不填写时继续使用服务端环境变量。
+
 需要获得授权的本地资料包模式时，设置 `IMA_SOURCE_MODE=archive` 与 `IMA_ARCHIVE_PATH=/absolute/path/to/authorized.zip`。未配置资料或模型、网络失败、权限不足和配额耗尽会明确报错，不输出固定答案。
 
 ## ModelScope 部署
