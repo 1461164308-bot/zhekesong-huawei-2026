@@ -17,7 +17,7 @@ import tempfile
 import time
 
 from ima_client import IMAClient, IMAError
-from llm_client import LLMClient, ModelError
+from llm_client import DEFAULT_MODEL, LLMClient, ModelError
 from policy import (PLATFORM_RULES, SCENE_RULES, draft_units, evidence_facts,
                     normalize, strategy_for, text_violations, validate_inputs)
 from prompts import EXTRACT_PROMPT, COMPOSE_PROMPT, AUDIT_PROMPT, FACT_REVIEW_PROMPT
@@ -71,7 +71,7 @@ def get_connection_status() -> str:
             message = "**ima 尚未连接** · " + html.escape(state.get("message", "请联系部署者核对服务端凭证与共享库权限。"))
     except Exception:
         message = "**ima 暂未连接** · 请刷新连接状态，或联系部署者核对共享库权限。"
-    model = os.environ.get("LLM_MODEL", "gpt-5.4")
+    model = os.environ.get("LLM_MODEL", DEFAULT_MODEL)
     model_state = f"模型配置就绪（{html.escape(model)}；生成时实际连接）" if os.environ.get("LLM_API_KEY") else "模型尚未配置"
     return message + "  \n" + model_state + " · 允许华为官方商城商品页补充事实，是否读取以本次核验记录为准；图源仍为同型号授权知识库。"
 

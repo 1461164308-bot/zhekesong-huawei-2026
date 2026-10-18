@@ -10,6 +10,11 @@ import time
 import requests
 
 
+DEFAULT_BASE_URL = "https://api-inference.modelscope.cn/v1"
+DEFAULT_MODEL = "Qwen/Qwen3.8-Flash-Next"
+DEFAULT_FALLBACK = "Qwen/Qwen3.5-27B"
+
+
 class ModelError(RuntimeError):
     """A safe, user-readable model error (never includes headers or raw replies)."""
 
@@ -35,7 +40,7 @@ def resolve_api_config(raw: dict | None) -> dict | None:
         raise ModelError("API 密钥长度异常，请检查后重试。")
     if len(base) > 300 or len(key) > 400 or len(model) > 120:
         raise ModelError("自定义 API 配置过长，请检查后重试。")
-    return {"base_url": base, "api_key": key, "model": model or "gpt-5.4"}
+    return {"base_url": base, "api_key": key, "model": model or DEFAULT_MODEL}
 
 
 class LLMClient:
@@ -51,11 +56,11 @@ class LLMClient:
             self.custom = True
         else:
             self.key = os.environ.get("LLM_API_KEY", "").strip()
-            self.base = os.environ.get("LLM_BASE_URL", "").strip().rstrip("/")
-            self.model = os.environ.get("LLM_MODEL", "gpt-5.4").strip()
+            self.base = os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL).strip().rstrip("/")
+            self.model = os.environ.get("LLM_MODEL", DEFAULT_MODEL).strip()
             self.custom = False
         self.fallback_models = [m.strip() for m in os.environ.get(
-            "LLM_FALLBACK_MODELS", "claude-fable-5,gpt-5.4-mini").split(",") if m.strip()]
+            "LLM_FALLBACK_MODELS", DEFAULT_FALLBACK).split(",") if m.strip()]
         if self.custom:
             # A user-supplied endpoint must not silently fall back to other models.
             self.fallback_models = []
@@ -121,9 +126,15 @@ class LLMClient:
                     last_status = response.status_code
                     break
                 try:
-                    msg = response.json()["choices"][0]["message"]["content"]
+                    message = response.json()["choices"][0]["message"]
+                    msg = message.get("content")
                     if isinstance(msg, list):
                         msg = "".join(x.get("text", "") for x in msg if isinstance(x, dict))
+                    if not msg and message.get("reasoning_content"):
+                        # Reasoning-only replies carry no deliverable JSON (seen on some
+                        # free tier models). Move on to the next configured model instead
+                        # of failing the whole task on the first attempt.
+                        break
                 except (ValueError, KeyError, IndexError, TypeError):
                     if attempt < tries - 1:
                         continue
