@@ -24,6 +24,9 @@ from prompts import EXTRACT_PROMPT, COMPOSE_PROMPT, AUDIT_PROMPT, FACT_REVIEW_PR
 from preview import build_preview
 from public_payload import sanitize_public
 from vmall_client import VmallError, fetch_vmall_sources
+from creation_flow import (FlowError, digest, make_plan, normalize_plan, request_key)
+from style_cards import normalize_style
+from platform_delivery import export_delivery
 from PIL import Image
 
 PLATFORMS = list(PLATFORM_RULES)
@@ -216,8 +219,14 @@ def _report(task: dict, strategy: dict, facts: list[dict], copy: str, images: li
 
 
 def run_task(product: str, audience: str, scenario: str, platform: str, goal: str,
-             requirements: str = "", revision: str = "", progress=None) -> dict:
-    """Execute a fresh, auditable task, including for revisions/channel changes."""
+             requirements: str = "", revision: str = "", progress=None, *,
+             phase: str = "final", style_card: dict | None = None,
+             approved_plan: dict | None = None, prepared: dict | None = None) -> dict:
+    """Read evidence for an idea, or write/review a final using approved evidence.
+
+    The GUI enforces brief/style/idea/final approvals in its per-session flow.
+    Legacy internal callers can still run the complete audited pipeline.
+    """
     started = time.perf_counter()
     trace: list[dict] = []
     stage_start = started
@@ -241,86 +250,128 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         fields = [name for name, value in [("准确产品型号", product), ("目标人群", audience), ("使用场景", scenario), ("发布平台", platform)] if not value]
         return _empty("needs_clarification", "### 请先补充任务\n\n" + "\n".join("- " + x for x in fields))
     try:
-        products = get_products()
-        if not products:
-            return _empty("error", "### 暂未能读取产品目录\n\n请刷新连接状态；本次没有用外部资料或预置答案代替 ima。", trace)
-        canonical, questions = validate_inputs(product, audience, scenario, platform, products)
-        if questions:
-            return _empty("needs_clarification", "### 需要先确认的信息\n\n" + "\n".join("- " + q for q in questions), trace)
-        product = canonical
-        source_requests = requirements + "\n" + revision
-        task = sanitize_public({"product": product, "audience": audience, "scenario": scenario, "platform": platform,
-                                "goal": goal, "requirements": requirements, "revision": revision})
-        audience, requirements = task["audience"], task["requirements"]
-        strategy = strategy_for(audience, scenario, platform, task["goal"])
-        step("场景与平台策略", 0.1, f"已确定{scenario}的使用问题与{platform}的结构/配图规则。")
-        result = _ima().retrieve(product, query=f"{scenario} {audience} {requirements}", max_sources=5,
-                                  max_images=strategy["image_max"])
-        if normalize(result.get("product", "")) != normalize(product):
-            return _empty("blocked", "### 型号核对未通过\n\n检索返回的型号与任务不一致，本次停止生成，请重新选择准确型号。", trace)
-        mode = result.get("retrieval_mode", "live_ima")
-        valid_origins = {"live_ima", "ima_cache", "offline_archive"}
-        origins = {item.get("origin", mode) for item in result.get("sources", []) + result.get("images", [])}
-        source_mismatch = (mode not in valid_origins | {"mixed"}
-                           or bool(result.get("offline_archive", False)) != (mode == "offline_archive")
-                           or not origins <= valid_origins
-                           or (mode != "mixed" and bool(origins - {mode}))
-                           or (mode == "mixed" and "offline_archive" in origins))
-        if source_mismatch:
-            return _empty("blocked", "### 资料来源模式未通过核对\n\n返回的来源标记未知或互相矛盾，请部署者检查配置；本次未调用写作模型。", trace)
-        knowledge_mode = mode
-        mode_label = {"live_ima": "实时 ima", "ima_cache": "ima 已检索缓存",
-                      "offline_archive": "主办方 ZIP 缓存（非实时 ima）", "mixed": "ima 检索与缓存混合"}[mode]
-        sources = [s.copy() for s in result.get("sources", []) if s.get("text")]
-        mall_sources = fetch_vmall_sources(product, source_requests)
-        used_source_ids = {s["id"] for s in sources}
-        next_source = 1
-        for source in mall_sources:
-            while f"S{next_source}" in used_source_ids:
-                next_source += 1
-            source = source.copy()
-            source["id"] = f"S{next_source}"
-            used_source_ids.add(source["id"])
-            sources.append(source)
-        if mall_sources:
-            mode = "mixed"
-            mode_label += " + 华为官方商城本次读取"
-        if not sources:
-            return _empty("blocked", "### 没有可用的事实依据\n\n未能获取该型号的授权知识库正文或华为官方商城商品正文，本次停止生成。请确认资料权限或提供准确的官方商城商品页链接。", trace)
-        images = [i.copy() for i in result.get("images", []) if normalize(i.get("model", "")) == normalize(product)
-                  and _displayable_image(i)]
-        if len(images) < strategy["image_min"]:
-            return _empty("needs_clarification", f"### 同型号配图数量不足\n\n{platform}需要至少{strategy['image_min']}张图片，本次只有{len(images)}张可验证的同型号素材。请补充获授权的同型号图库，或换用图片数量要求较少的平台。\n\n没有使用其他型号图片凑数。", trace,
-                          strategy=strategy, checks={"publication": "配图不足，未交付文案"})
-        step("资料与配图检索", 0.3, f"{mode_label}：已读取{len(sources)}份型号资料（含{len(mall_sources)}份官方商城正文）、{len(images)}张知识库同型号原图。")
-        model = LLMClient()
-        # Full per-product facts/limits are supplied; historical marketing/price docs are not trusted facts.
-        payload_sources = [{"id": s["id"], "title": s["title"], "kind": s.get("kind", "facts"),
-                            "origin": s.get("origin", knowledge_mode),
-                            "official_url": _public_url(s.get("official_url", "")),
-                            "retrieved_at": s.get("retrieved_at", ""),
-                            "text": s["text"][:26000]} for s in sources if s.get("kind") != "price"]
-        image_meta = [{k: i.get(k, "") for k in ("id", "title", "caption", "model")} for i in images]
-        extracted = model.json(EXTRACT_PROMPT, {"task": task, "strategy": strategy, "sources": payload_sources,
-                                               "available_images": image_meta})
-        if isinstance(extracted.get("customer_insight"), dict):
-            strategy["customer_insight"] = extracted["customer_insight"]
-        if extracted.get("conflicts"):
-            return _empty("blocked", "### 资料存在冲突，请人工确认\n\n" + "\n".join("- " + str(x) for x in extracted['conflicts']) + "\n\n本次没有交付营销稿。", trace,
-                          checks={"publication": "资料冲突，停止生成", "conflicts": extracted["conflicts"]})
-        facts, rejected = evidence_facts(extracted, sources)
-        if not facts:
-            return _empty("blocked", "### 事实来源校验未通过\n\n没有事实能够在本次授权知识库或华为官方商城正文中逐字定位，本次停止生成。请重试或核对资料。", trace)
-        evidence_review = model.json(FACT_REVIEW_PROMPT, {"facts": facts}, max_tokens=2500)
-        fact_verdicts = {x.get("id"): x for x in evidence_review.get("facts", []) if isinstance(x, dict)}
-        evidence_removed = [{"id": f["id"], "reason": str(fact_verdicts.get(f["id"], {}).get("reason", "证据复核未确认该事实。"))}
-                            for f in facts if fact_verdicts.get(f["id"], {}).get("verdict") != "pass"]
-        facts = [f for f in facts if fact_verdicts.get(f["id"], {}).get("verdict") == "pass"]
-        if not facts:
-            return _empty("blocked", "### 事实证据复核未通过\n\n引文不能充分支持提取的事实，本次停止生成。", trace,
-                          checks={"publication": "未交付文案", "removed_facts": evidence_removed})
-        step("事实提取与引文/语义复核", 0.5, f"{len(facts)}项事实同时通过原文定位和独立证据复核。")
+        input_key = request_key({"product": product, "audience": audience, "scenario": scenario,
+                                 "platform": platform, "goal": goal, "requirements": requirements})
+        card = normalize_style(style_card) if style_card is not None else None
+        if prepared is not None:
+            if (phase != "final" or prepared.get("input_key") != input_key
+                    or prepared.get("style_key") != digest(card)
+                    or time.time() - prepared.get("created_at", 0) > 3600):
+                raise FlowError("需求、风格或资料确认已失效，请重新生成并确认思路。")
+            if not approved_plan:
+                raise FlowError("请先确认创作思路。")
+            task, strategy = prepared["task"].copy(), prepared["strategy"].copy()
+            product = task["product"]
+            facts, images = prepared["facts"], prepared["images"]
+            if any(not _displayable_image(image) for image in images):
+                raise FlowError("已确认的配图暂不可读，请重新生成思路。")
+            sources, extracted = prepared["sources"], prepared["extracted"]
+            result = {"warnings": prepared.get("retrieval_warnings", [])}
+            mode, mode_label = prepared["mode"], prepared["mode_label"]
+            knowledge_mode = prepared["knowledge_mode"]
+            mall_sources = prepared["mall_sources"]
+            rejected, evidence_removed = prepared["rejected"], prepared["evidence_removed"]
+            image_meta = [{k: image.get(k, "") for k in ("id", "title", "caption", "model")} for image in images]
+            model = LLMClient()
+            trace.extend(prepared.get("trace", []))
+            step("用户确认", 0.5, "需求、风格卡和创作思路已确认；使用思路阶段已核验的事实与配图。")
+        else:
+            products = get_products()
+            if not products:
+                return _empty("error", "### 暂未能读取产品目录\n\n请刷新连接状态；本次没有用外部资料或预置答案代替 ima。", trace)
+            canonical, questions = validate_inputs(product, audience, scenario, platform, products)
+            if questions:
+                return _empty("needs_clarification", "### 需要先确认的信息\n\n" + "\n".join("- " + q for q in questions), trace)
+            product = canonical
+            source_requests = requirements + "\n" + revision
+            task = sanitize_public({"product": product, "audience": audience, "scenario": scenario, "platform": platform,
+                                    "goal": goal, "requirements": requirements, "revision": revision})
+            audience, requirements = task["audience"], task["requirements"]
+            strategy = strategy_for(audience, scenario, platform, task["goal"])
+            step("场景与平台策略", 0.1, f"已确定{scenario}的使用问题与{platform}的结构/配图规则。")
+            result = _ima().retrieve(product, query=f"{scenario} {audience} {requirements}", max_sources=5,
+                                      max_images=strategy["image_max"])
+            if normalize(result.get("product", "")) != normalize(product):
+                return _empty("blocked", "### 型号核对未通过\n\n检索返回的型号与任务不一致，本次停止生成，请重新选择准确型号。", trace)
+            mode = result.get("retrieval_mode", "live_ima")
+            valid_origins = {"live_ima", "ima_cache", "offline_archive"}
+            origins = {item.get("origin", mode) for item in result.get("sources", []) + result.get("images", [])}
+            source_mismatch = (mode not in valid_origins | {"mixed"}
+                               or bool(result.get("offline_archive", False)) != (mode == "offline_archive")
+                               or not origins <= valid_origins
+                               or (mode != "mixed" and bool(origins - {mode}))
+                               or (mode == "mixed" and "offline_archive" in origins))
+            if source_mismatch:
+                return _empty("blocked", "### 资料来源模式未通过核对\n\n返回的来源标记未知或互相矛盾，请部署者检查配置；本次未调用写作模型。", trace)
+            knowledge_mode = mode
+            mode_label = {"live_ima": "实时 ima", "ima_cache": "ima 已检索缓存",
+                          "offline_archive": "主办方 ZIP 缓存（非实时 ima）", "mixed": "ima 检索与缓存混合"}[mode]
+            sources = [s.copy() for s in result.get("sources", []) if s.get("text")]
+            mall_sources = fetch_vmall_sources(product, source_requests)
+            used_source_ids = {s["id"] for s in sources}
+            next_source = 1
+            for source in mall_sources:
+                while f"S{next_source}" in used_source_ids:
+                    next_source += 1
+                source = source.copy()
+                source["id"] = f"S{next_source}"
+                used_source_ids.add(source["id"])
+                sources.append(source)
+            if mall_sources:
+                mode = "mixed"
+                mode_label += " + 华为官方商城本次读取"
+            if not sources:
+                return _empty("blocked", "### 没有可用的事实依据\n\n未能获取该型号的授权知识库正文或华为官方商城商品正文，本次停止生成。请确认资料权限或提供准确的官方商城商品页链接。", trace)
+            images = [i.copy() for i in result.get("images", []) if normalize(i.get("model", "")) == normalize(product)
+                      and _displayable_image(i)]
+            if len(images) < strategy["image_min"]:
+                return _empty("needs_clarification", f"### 同型号配图数量不足\n\n{platform}需要至少{strategy['image_min']}张图片，本次只有{len(images)}张可验证的同型号素材。请补充获授权的同型号图库，或换用图片数量要求较少的平台。\n\n没有使用其他型号图片凑数。", trace,
+                              strategy=strategy, checks={"publication": "配图不足，未交付文案"})
+            step("资料与配图检索", 0.3, f"{mode_label}：已读取{len(sources)}份型号资料（含{len(mall_sources)}份官方商城正文）、{len(images)}张知识库同型号原图。")
+            model = LLMClient()
+            # Full per-product facts/limits are supplied; historical marketing/price docs are not trusted facts.
+            payload_sources = [{"id": s["id"], "title": s["title"], "kind": s.get("kind", "facts"),
+                                "origin": s.get("origin", knowledge_mode),
+                                "official_url": _public_url(s.get("official_url", "")),
+                                "retrieved_at": s.get("retrieved_at", ""),
+                                "text": s["text"][:26000]} for s in sources if s.get("kind") != "price"]
+            image_meta = [{k: i.get(k, "") for k in ("id", "title", "caption", "model")} for i in images]
+            extracted = model.json(EXTRACT_PROMPT, {"task": task, "strategy": strategy, "sources": payload_sources,
+                                                   "available_images": image_meta})
+            if isinstance(extracted.get("customer_insight"), dict):
+                strategy["customer_insight"] = extracted["customer_insight"]
+            if extracted.get("conflicts"):
+                return _empty("blocked", "### 资料存在冲突，请人工确认\n\n" + "\n".join("- " + str(x) for x in extracted['conflicts']) + "\n\n本次没有交付营销稿。", trace,
+                              checks={"publication": "资料冲突，停止生成", "conflicts": extracted["conflicts"]})
+            facts, rejected = evidence_facts(extracted, sources)
+            if not facts:
+                return _empty("blocked", "### 事实来源校验未通过\n\n没有事实能够在本次授权知识库或华为官方商城正文中逐字定位，本次停止生成。请重试或核对资料。", trace)
+            evidence_review = model.json(FACT_REVIEW_PROMPT, {"facts": facts}, max_tokens=2500)
+            fact_verdicts = {x.get("id"): x for x in evidence_review.get("facts", []) if isinstance(x, dict)}
+            evidence_removed = [{"id": f["id"], "reason": str(fact_verdicts.get(f["id"], {}).get("reason", "证据复核未确认该事实。"))}
+                                for f in facts if fact_verdicts.get(f["id"], {}).get("verdict") != "pass"]
+            facts = [f for f in facts if fact_verdicts.get(f["id"], {}).get("verdict") == "pass"]
+            if not facts:
+                return _empty("blocked", "### 事实证据复核未通过\n\n引文不能充分支持提取的事实，本次停止生成。", trace,
+                              checks={"publication": "未交付文案", "removed_facts": evidence_removed})
+            step("事实提取与引文/语义复核", 0.5, f"{len(facts)}项事实同时通过原文定位和独立证据复核。")
+        if phase == "plan":
+            context = {"task": task, "strategy": strategy, "facts": facts, "images": images,
+                       "sources": _public_sources(sources), "extracted": {k: extracted.get(k, []) for k in ("constraints", "unknowns")},
+                       "mode": mode, "mode_label": mode_label, "knowledge_mode": knowledge_mode,
+                       "mall_sources": [s for s in _public_sources(sources) if s.get("origin") == "official_vmall"],
+                       "rejected": rejected, "evidence_removed": evidence_removed,
+                       "retrieval_warnings": sanitize_public(result.get("warnings", [])),
+                       "input_key": input_key, "style_key": digest(card), "created_at": time.time(), "trace": trace}
+            return {"status": "plan_ready", "plan": make_plan(context), "prepared": context,
+                    "facts": sanitize_public(facts), "images": images, "strategy": sanitize_public(strategy),
+                    "checks": {"data_mode_label": mode_label}, "trace": sanitize_public(trace)}
+        if card:
+            strategy["style_card"] = card
+        if approved_plan:
+            strategy["approved_plan"] = normalize_plan(approved_plan)
         compose_payload = {"task": task, "strategy": strategy, "facts": facts,
+                           "style_card": card, "approved_plan": strategy.get("approved_plan"),
                            "constraints": extracted.get("constraints", []), "images": image_meta}
         draft = model.json(COMPOSE_PROMPT, compose_payload)
         # One bounded writing repair, always followed by the same independent audit.
@@ -329,9 +380,16 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
             str(s.get("text", "")) for s in draft.get("sections", []) if isinstance(s, dict))
         body_chars = len(re.findall(r"[\u4e00-\u9fff]", body_text))
         max_chars = {"小红书": 650, "微信公众号": 1000, "门店朋友圈": 180, "门店海报": 120}[platform]
+        min_chars = {"小红书": 350, "微信公众号": 650, "门店朋友圈": 80, "门店海报": 40}[platform]
         repair = []
-        if body_chars > max_chars:
-            repair.append(f"正文当前{body_chars}个汉字，压缩至{strategy['body_target']}，保留事实适用条件，少讲参数。")
+        if body_chars > max_chars or (phase == "final" and prepared is not None and body_chars < min_chars):
+            repair.append(f"正文当前{body_chars}个汉字，调整至{strategy['body_target']}；补足场景建议和选购取舍，不编造事实，不重复凑字。")
+        if len(str(draft.get("title", ""))) > strategy["title_max"]:
+            repair.append(f"标题控制在{strategy['title_max']}个字符以内。")
+        if prepared is not None and platform == "微信公众号" and (not draft.get("intro") or any(not s.get("heading") for s in draft.get("sections", []) if isinstance(s, dict))):
+            repair.append("公众号必须有导语，每个正文段落有论证小标题，正文与给定配图按slot穿插。")
+        if prepared is not None and platform == "小红书" and not draft.get("tags"):
+            repair.append("小红书补充与本次内容相关的话题标签，不在标签加入无依据产品结论。")
         if re.search(r"\b(?:usually|basically|actually|anyway|whatever)\b", body_text, re.I):
             repair.append("移除无意义的夹杂英文，改为自然简体中文。")
         gate_feedback = []
@@ -458,9 +516,16 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         preview = build_preview(accepted, selected, task, mode_label)
         if preview.count('<img src="data:image/') < strategy["image_min"]:
             return _empty("needs_clarification", "### 配图预览校验失败\n\n图片无法完整显示，未达到平台最低图数；请补充可读取的同型号素材后重试。", trace)
-        report = _report(task, strategy, facts, copy, selected, checks, public["sources"])
-        step("事实、图片与合规核验", 0.94, f"已审核{len(units)}个文本单元，拦截{len(removed)}项风险；核对{len(selected)}张图片。")
         out_dir = Path(tempfile.mkdtemp(prefix="zhiheng-export-"))
+        delivery = export_delivery(accepted, selected, task, mode_label, out_dir, copy)
+        checks["platform_checks"] = delivery["platform_checks"]
+        checks["platform_ready"] = bool(delivery["platform_checks"].get("ready"))
+        if not checks["platform_ready"]:
+            checks["warnings"].extend(delivery["platform_checks"].get("issues", []))
+            checks["publication"] = "待修改：平台格式未全部达标；当前为待审草稿"
+        report = _report(task, strategy, facts, copy, selected, checks, public["sources"])
+        report += "\n\n## 平台排版与交付\n\n" + delivery["delivery_notes"]
+        step("事实、图片与合规核验", 0.94, f"已审核{len(units)}个文本单元，拦截{len(removed)}项风险；核对{len(selected)}张图片。")
         md = out_dir / "知衡-图文营销方案.md"
         js = out_dir / "知衡-核验记录.json"
         md.write_text(report, encoding="utf-8")
@@ -475,7 +540,11 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
         js.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
         return {"status": "ready", "report": report, "copy_text": copy, "strategy": strategy,
                 "facts": facts, "images": selected, "checks": checks, "trace": trace,
-                "export_markdown": str(md), "export_json": str(js), "preview_html": preview}
+                "export_markdown": str(md), "export_json": str(js), "preview_html": preview, **delivery}
+    except FlowError as exc:
+        return _empty("needs_clarification", "### 请先完成确认\n\n" + html.escape(str(exc)), trace)
+    except ValueError:
+        return _empty("needs_clarification", "### 风格卡或思路不完整\n\n请检查文本长度和必填字段后重新确认。", trace)
     except VmallError as exc:
         return _empty("needs_clarification", "### 华为官方商城资料需要确认\n\n" + html.escape(str(exc)) + "\n\n本次未使用模型记忆或第三方页面补写。", trace)
     except (IMAError, ModelError) as exc:
