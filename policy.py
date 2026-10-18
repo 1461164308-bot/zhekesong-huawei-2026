@@ -115,6 +115,67 @@ def evidence_facts(extracted: dict, sources: list[dict]) -> tuple[list[dict], li
     return facts, list(dict.fromkeys(rejected))
 
 
+# Deliberately bounded to explicit measurements; unit conversion and prose-level
+# entailment remain the independent audit's job. Aliases share a unit, not a scale.
+_UNIT_ALIASES = {
+    "kg": "kg", "千克": "kg", "公斤": "kg", "g": "g", "克": "g",
+    "mm": "mm", "毫米": "mm", "cm": "cm", "厘米": "cm",
+    "英寸": "inch", "吋": "inch", "inch": "inch", "inches": "inch",
+    "小时": "hour", "h": "hour", "分钟": "minute", "min": "minute", "秒": "second", "s": "second",
+    "hz": "hz", "赫兹": "hz", "khz": "khz", "mhz": "mhz", "ghz": "ghz",
+    "gb": "gb", "tb": "tb", "mb": "mb", "wh": "wh", "mah": "mah", "w": "w", "瓦": "w",
+    "nit": "nit", "nits": "nit", "尼特": "nit", "%": "%", "k": "k", "像素": "px", "px": "px",
+}
+_UNIT_PATTERN = "(?:" + "|".join(re.escape(x) for x in sorted(_UNIT_ALIASES, key=len, reverse=True)) + r")(?![a-zA-Z])"
+_NUMBER_PATTERN = r"(?<![\d.])\d+(?:\.\d+)?"
+_MEASURE = re.compile(r"(?P<value>" + _NUMBER_PATTERN + r")\s*(?P<unit>" + _UNIT_PATTERN + r")", re.I)
+_MEASURE_RANGE = re.compile(
+    r"(?P<first>" + _NUMBER_PATTERN + r")\s*(?:(?P<first_unit>" + _UNIT_PATTERN + r")\s*)?"
+    r"(?:到|至|[-~～—–])\s*(?P<last>\d+(?:\.\d+)?)\s*(?P<unit>" + _UNIT_PATTERN + r")", re.I)
+
+
+def _measurements(text: str) -> list[dict]:
+    text = unicodedata.normalize("NFKC", str(text))
+    ranges = list(_MEASURE_RANGE.finditer(text))
+    matches = [(m, True) for m in ranges]
+    matches += [(m, False) for m in _MEASURE.finditer(text)
+                if not any(r.start() <= m.start() < r.end() for r in ranges)]
+    result, previous_end = [], 0
+    for match, is_range in sorted(matches, key=lambda pair: pair[0].start()):
+        # A qualifier belongs to this measurement, not an earlier clause/number.
+        prefix = re.split(r"[。！？!?；;，,\n]", text[max(previous_end, match.start()-32):match.start()])[-1]
+        suffix = text[match.end():match.end()+8]
+        unit = _UNIT_ALIASES[match["unit"].casefold()]
+        first_unit = match["first_unit"] if is_range else None
+        result.append({"values": (match["first"], match["last"]) if is_range else (match["value"],),
+                       "unit": unit, "mixed_units": bool(first_unit and _UNIT_ALIASES[first_unit.casefold()] != unit),
+                       "approx": bool(re.search(r"约|大概|大致|接近|近", prefix) or re.match(r"\s*(?:左右|上下)", suffix)),
+                       "upper": bool(re.search(r"最高|至多|最多|不超过|不高于|上限|最大|高达|可达|≤|<=", prefix)
+                                     or re.match(r"\s*(?:以内|以下|为上限)", suffix)),
+                       "label": match.group(0)})
+        previous_end = match.end()
+    return result
+
+
+def _measurement_violations(text: str, quotes: list[str]) -> list[str]:
+    evidence = [measurement for quote in quotes for measurement in _measurements(quote)]
+    issues = []
+    for claim in _measurements(text):
+        if len(claim["values"]) == 2:
+            supports = [m for m in evidence if m["unit"] == claim["unit"] and m["values"] == claim["values"] and not m["mixed_units"]]
+        else:
+            supports = [m for m in evidence if m["unit"] == claim["unit"] and claim["values"][0] in m["values"] and not m["mixed_units"]]
+        if not supports or claim["mixed_units"]:
+            kind = "数值范围及方向" if len(claim["values"]) == 2 else "数值与单位组合"
+            issues.append(f"来源未支持{kind}：{claim['label']}。")
+        elif not any((not m["approx"] or claim["approx"]) and (not m["upper"] or claim["upper"]) for m in supports):
+            if not claim["approx"] and all(m["approx"] for m in supports):
+                issues.append(f"测量值{claim['label']}须保留来源中的约数限定。")
+            else:
+                issues.append(f"测量值{claim['label']}须保留来源中的最高/至多等上限限定及约数条件。")
+    return issues
+
+
 def text_violations(text: str, facts: list[dict], product: str) -> list[str]:
     text = unicodedata.normalize("NFKC", str(text))
     violations = []
@@ -129,14 +190,7 @@ def text_violations(text: str, facts: list[dict], product: str) -> list[str]:
     supported = set(re.findall(r"\d+(?:\.\d+)?", evidence))
     if numbers - supported:
         violations.append("出现来源未支持的数值：" + "、".join(sorted(numbers-supported)))
-    # Approximate measurements must not become exact claims during composition.
-    for value, unit in set(re.findall(r"约\s*(\d+(?:\.\d+)?)\s*(kg|g|mm|千克|克|毫米|小时|分钟)", evidence, re.I)):
-        pattern = r"(?<![\d.])" + re.escape(value) + r"\s*" + re.escape(unit)
-        for match in re.finditer(pattern, text, re.I):
-            before = text[max(0, match.start()-6):match.start()]
-            after = text[match.end():match.end()+4]
-            if not re.search(r"(?:约|大概|左右|近)\s*$", before) and not re.match(r"\s*(?:左右|上下)", after):
-                violations.append(f"测量值{value}{unit}须保留来源中的约数限定。")
+    violations.extend(_measurement_violations(text, [f["quote"] for f in facts]))
     return list(dict.fromkeys(violations))
 
 

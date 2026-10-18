@@ -22,3 +22,5 @@ evidence/
 *_secrets.json
 zhiheng-private-archive/
 ~$*
+
+.dsh-office-*/

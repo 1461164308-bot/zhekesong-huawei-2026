@@ -150,6 +150,73 @@ class PublicationPolicyTests(unittest.TestCase):
         self.assertFalse(any(x["id"] == "tags" for x in units))
 
 
+class MeasurementPolicyTests(unittest.TestCase):
+    def check(self, text, quote):
+        return text_violations(text, [{"id": "F1", "quote": quote}], PRODUCT)
+
+    def test_equal_number_in_different_unit_is_not_support(self):
+        quote = "重量约798 g到825 g，刷新率120 Hz。"
+        for text in ("续航120小时。", "内存120 GB。", "重量约120 g。"):
+            with self.subTest(text=text):
+                self.assertTrue(any("单位组合" in x for x in self.check(text, quote)))
+
+    def test_product_model_number_is_not_measurement_evidence(self):
+        self.assertEqual(text_violations(YEAR_PRODUCT + "选购参考", [], YEAR_PRODUCT), [])
+        self.assertTrue(text_violations("续航14小时。", [], YEAR_PRODUCT))
+
+    def test_approximate_range_qualifier_applies_to_both_endpoints(self):
+        quote = "重量约798 g到825 g，刷新率120 Hz。"
+        for text in ("重量798 g。", "重量825 g。", "重量798 g至825 g。"):
+            with self.subTest(text=text):
+                self.assertTrue(any("约数" in x for x in self.check(text, quote)))
+        for text in ("重量约798 g至825 g。", "重量约825克。", "重量798克左右。"):
+            with self.subTest(text=text):
+                self.assertEqual(self.check(text, quote), [])
+
+    def test_reversed_or_invented_range_is_rejected(self):
+        quote = "重量约798 g到825 g，刷新率120 Hz。"
+        self.assertTrue(any("范围及方向" in x for x in self.check("重量约825 g到798 g。", quote)))
+        self.assertTrue(self.check("重量约798 kg到825 g。", quote))
+        # Separate configurations do not authorize inventing a continuous interval.
+        self.assertTrue(self.check("重量约798 g至825 g。", "型号甲约798 g，型号乙约825 g。"))
+
+    def test_upper_bound_cannot_be_dropped_or_borrowed_from_previous_clause(self):
+        quote = "视频输出最高支持4K，刷新率120 Hz。"
+        for text in ("视频支持4K。", "最高支持120 Hz，视频支持4K。", "最高支持120 Hz。视频支持4K。"):
+            with self.subTest(text=text):
+                self.assertTrue(any("上限" in x for x in self.check(text, quote)))
+        for text in ("视频输出最高支持4K。", "视频输出至多支持4K。", "视频输出不超过4K。", "视频输出4K以内。"):
+            with self.subTest(text=text):
+                self.assertEqual(self.check(text, quote), [])
+
+    def test_unit_aliases_case_and_fullwidth_text_keep_supported_values(self):
+        quote = "屏幕尺寸14.2英寸，刷新率120 Hz，重量约798 g。"
+        self.assertEqual(self.check("屏幕为１４．２英寸，刷新率１２０Ｈｚ，重量约７９８克。", quote), [])
+        self.assertEqual(self.check("刷新率120赫兹。", quote), [])
+        self.assertEqual(self.check("尺寸14.2英寸，刷新率120 Hz。", quote), [])
+
+    def test_exact_measurement_does_not_acquire_unrelated_approximate_qualifier(self):
+        quote = "重量约798 g，厚度16 mm，刷新率120 Hz。"
+        self.assertEqual(self.check("厚度16毫米，刷新率120 Hz。", quote), [])
+        self.assertEqual(self.check("重量约798g和厚度16mm。", quote), [])
+
+    def test_unit_scale_conversion_is_not_inferred(self):
+        self.assertTrue(self.check("重量约798 kg。", "重量约798 g。"))
+        self.assertTrue(self.check("刷新率120 GHz。", "刷新率120 Hz。"))
+
+    def test_upper_and_approximate_conditions_must_both_survive(self):
+        quote = "实验条件下续航最高约12小时。"
+        for text in ("续航12小时。", "续航约12小时。", "续航最高12小时。"):
+            with self.subTest(text=text):
+                self.assertTrue(self.check(text, quote))
+        self.assertEqual(self.check("续航最高约12小时。", quote), [])
+
+    def test_exact_support_can_be_used_without_borrowing_another_quote_qualifier(self):
+        facts = [{"id": "F1", "quote": "指定配置重量约798 g。"},
+                 {"id": "F2", "quote": "另一个已复核的配置重量798 g。"}]
+        self.assertEqual(text_violations("重量798 g。", facts, PRODUCT), [])
+
+
 class StoreDemoUnitTests(unittest.TestCase):
     def setUp(self):
         self.strategy = strategy_for("门店顾客", "门店到访", "门店朋友圈", "预约")
