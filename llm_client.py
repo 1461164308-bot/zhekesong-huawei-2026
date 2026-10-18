@@ -14,19 +14,54 @@ class ModelError(RuntimeError):
     """A safe, user-readable model error (never includes headers or raw replies)."""
 
 
+def resolve_api_config(raw: dict | None) -> dict | None:
+    """Validate an optional user-supplied API override.
+
+    The returned dict is kept in the caller's session state only: it is never
+    written to disk, exported, logged or echoed back to the page.
+    """
+    if not isinstance(raw, dict):
+        return None
+    base = str(raw.get("base_url", "") or "").strip().rstrip("/")
+    key = str(raw.get("api_key", "") or "").strip()
+    model = str(raw.get("model", "") or "").strip()
+    if not base and not key and not model:
+        return None
+    if not base or not key:
+        raise ModelError("自定义 API 需要同时填写服务地址和 API 密钥。")
+    if not base.startswith("https://"):
+        raise ModelError("自定义 API 地址必须使用 HTTPS。")
+    if len(key) < 8:
+        raise ModelError("API 密钥长度异常，请检查后重试。")
+    if len(base) > 300 or len(key) > 400 or len(model) > 120:
+        raise ModelError("自定义 API 配置过长，请检查后重试。")
+    return {"base_url": base, "api_key": key, "model": model or "gpt-5.4"}
+
+
 class LLMClient:
     _lock = threading.Lock()
     _calls: dict[str, int] = {}
 
-    def __init__(self):
-        self.key = os.environ.get("LLM_API_KEY", "").strip()
-        self.base = os.environ.get("LLM_BASE_URL", "").strip().rstrip("/")
-        self.model = os.environ.get("LLM_MODEL", "gpt-5.4").strip()
+    def __init__(self, api_config: dict | None = None):
+        override = resolve_api_config(api_config)
+        if override:
+            self.key = override["api_key"]
+            self.base = override["base_url"]
+            self.model = override["model"]
+            self.custom = True
+        else:
+            self.key = os.environ.get("LLM_API_KEY", "").strip()
+            self.base = os.environ.get("LLM_BASE_URL", "").strip().rstrip("/")
+            self.model = os.environ.get("LLM_MODEL", "gpt-5.4").strip()
+            self.custom = False
         self.fallback_models = [m.strip() for m in os.environ.get(
             "LLM_FALLBACK_MODELS", "claude-fable-5,gpt-5.4-mini").split(",") if m.strip()]
+        if self.custom:
+            # A user-supplied endpoint must not silently fall back to other models.
+            self.fallback_models = []
         self.max_calls = int(os.environ.get("LLM_MAX_DAILY_CALLS", "240"))
         if not self.key or not self.base:
-            raise ModelError("模型服务未配置。请由部署者配置 LLM_BASE_URL 与 LLM_API_KEY 服务端配置。")
+            raise ModelError("模型服务未配置。可在页面「模型 API 设置」中填写自己的服务地址与密钥，或由部署者配置服务端环境变量。")
         if not self.base.startswith("https://"):
             raise ModelError("模型服务地址必须使用 HTTPS。")
 

@@ -221,7 +221,8 @@ def _report(task: dict, strategy: dict, facts: list[dict], copy: str, images: li
 def run_task(product: str, audience: str, scenario: str, platform: str, goal: str,
              requirements: str = "", revision: str = "", progress=None, *,
              phase: str = "final", style_card: dict | None = None,
-             approved_plan: dict | None = None, prepared: dict | None = None) -> dict:
+             approved_plan: dict | None = None, prepared: dict | None = None,
+             api_config: dict | None = None) -> dict:
     """Read evidence for an idea, or write/review a final using approved evidence.
 
     The GUI enforces brief/style/idea/final approvals in its per-session flow.
@@ -272,7 +273,7 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
             mall_sources = prepared["mall_sources"]
             rejected, evidence_removed = prepared["rejected"], prepared["evidence_removed"]
             image_meta = [{k: image.get(k, "") for k in ("id", "title", "caption", "model")} for image in images]
-            model = LLMClient()
+            model = LLMClient(api_config) if api_config else LLMClient()
             trace.extend(prepared.get("trace", []))
             step("用户确认", 0.5, "需求、风格卡和创作思路已确认；使用思路阶段已核验的事实与配图。")
         else:
@@ -328,7 +329,7 @@ def run_task(product: str, audience: str, scenario: str, platform: str, goal: st
                 return _empty("needs_clarification", f"### 同型号配图数量不足\n\n{platform}需要至少{strategy['image_min']}张图片，本次只有{len(images)}张可验证的同型号素材。请补充获授权的同型号图库，或换用图片数量要求较少的平台。\n\n没有使用其他型号图片凑数。", trace,
                               strategy=strategy, checks={"publication": "配图不足，未交付文案"})
             step("资料与配图检索", 0.3, f"{mode_label}：已读取{len(sources)}份型号资料（含{len(mall_sources)}份官方商城正文）、{len(images)}张知识库同型号原图。")
-            model = LLMClient()
+            model = LLMClient(api_config) if api_config else LLMClient()
             # Full per-product facts/limits are supplied; historical marketing/price docs are not trusted facts.
             payload_sources = [{"id": s["id"], "title": s["title"], "kind": s.get("kind", "facts"),
                                 "origin": s.get("origin", knowledge_mode),

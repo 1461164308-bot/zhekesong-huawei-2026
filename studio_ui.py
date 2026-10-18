@@ -7,6 +7,7 @@ import os
 import gradio as gr
 
 import creation_flow as flow
+from llm_client import ModelError, resolve_api_config
 from style_cards import (STYLE_FIELDS, PRESET_NAMES, StyleError, get_preset, style_values,
                          style_from_values, infer_style, saved_choices, save_style, delete_style)
 
@@ -16,6 +17,7 @@ def build_studio(examples, fallback_products, desktop_html):
 
     with gr.Blocks(title="知衡 · 华为PC图文营销智能体", analytics_enabled=False) as app:
         state = gr.State({})
+        api_state = gr.State({})
         draft_source = gr.State(flow.style_source_key())
         favourites = gr.BrowserState({}, storage_key="zhiheng-style-cards-v1",
                                      secret=os.environ.get("STYLE_STORAGE_SECRET", "zhiheng-browser-style-cards-v1"))
@@ -39,7 +41,7 @@ def build_studio(examples, fallback_products, desktop_html):
                 with gr.Row(elem_id="zh-examples"):
                     example_buttons = [gr.Button(label, size="sm") for label in ["校园 · 小红书", "办公 · 公众号", "到店 · 朋友圈"]]
                 brief_button = gr.Button("确认需求，进入风格选择", variant="primary")
-                gr.Markdown("### 02 / 选择或定义风格")
+                gr.Markdown("### 02 / 选择或定义风格", elem_id="zh-style-title")
                 preset = gr.Dropdown(PRESET_NAMES, value="专业可信", label="内置风格", interactive=True)
                 with gr.Row():
                     saved = gr.Dropdown([], value=None, label="我的常用风格", interactive=True)
@@ -57,9 +59,24 @@ def build_studio(examples, fallback_products, desktop_html):
                     save_button = gr.Button("保存为常用风格")
                     style_button = gr.Button("确认当前风格卡", variant="primary")
                 style_notice = gr.Markdown("常用风格只保存在当前浏览器；保存的卡片不含参考文案。")
+                with gr.Accordion("模型 API 设置（可选 · 仅本次会话）", open=False):
+                    gr.Markdown(
+                        "默认使用服务器已配置的模型服务。如需换用自己的 OpenAI 兼容接口，在此填写；"
+                        "设置只保存在本次会话，不写入磁盘、不显示密钥、不进入报告与导出。"
+                    )
+                    api_base = gr.Textbox(label="服务地址（Base URL）", placeholder="https://your-endpoint/v1",
+                                          lines=1, max_length=300)
+                    api_key = gr.Textbox(label="API 密钥", type="password", placeholder="仅本次会话使用",
+                                         lines=1, max_length=400)
+                    api_model = gr.Textbox(label="模型名称（选填）", placeholder="默认 gpt-5.4",
+                                           lines=1, max_length=120)
+                    with gr.Row():
+                        api_save = gr.Button("应用自定义 API", size="sm")
+                        api_reset = gr.Button("恢复服务器配置", size="sm")
+                    api_notice = gr.Markdown("当前：使用服务器配置。")
             with gr.Column(scale=7, min_width=360, elem_id="zh-results"):
                 status = gr.Markdown("### 请先确认需求\n可先点击一个示例，再依次确认风格与思路。", elem_id="zh-status")
-                gr.Markdown("### 03 / 先看思路，再出终稿\n思路使用已核验事实和同型号配图；可修改每项内容后确认。")
+                gr.Markdown("### 03 / 先看思路，再出终稿\n思路使用已核验事实和同型号配图；可修改每项内容后确认。", elem_id="zh-plan-title")
                 idea_button = gr.Button("生成创作思路", interactive=False, variant="primary")
                 plan_inputs = [gr.Textbox(label=label, lines=4 if key in {"outline", "images"} else 2,
                                          max_lines=8, max_length=2400) for key, label in flow.PLAN_FIELDS]
@@ -150,9 +167,22 @@ def build_studio(examples, fallback_products, desktop_html):
             except Exception as exc:
                 return error(exc)
 
-        def extract_style(desc, ref, base, current):
+        def save_api(base, key, model):
             try:
-                card = infer_style(desc or "", ref or "", base)
+                config = resolve_api_config({"base_url": base, "api_key": key, "model": model})
+            except ModelError as exc:
+                return {}, "### 设置未生效\n" + str(exc)
+            if not config:
+                return {}, "当前：使用服务器配置。填写服务地址与密钥后再点击「应用自定义 API」。"
+            host = config["base_url"].split("://", 1)[-1].split("/", 1)[0]
+            return config, f"当前：自定义 API · 模型 {config['model']} · 地址 {host}。密钥仅保存在本次会话，不回显。"
+
+        def reset_api():
+            return {}, "已恢复服务器配置；本次会话不再使用自定义 API。"
+
+        def extract_style(desc, ref, base, current, api):
+            try:
+                card = infer_style(desc or "", ref or "", base, api_config=api)
                 updates = invalidate_style(current)
                 updates.update({component: value for component, value in zip(card_inputs, style_values(card))})
                 updates.update({draft_source: flow.style_source_key(desc, ref), status: "### 风格卡已提炼\n请检查并编辑七项表达规则，然后确认使用。"})
@@ -170,9 +200,10 @@ def build_studio(examples, fallback_products, desktop_html):
 
         def create_idea(*args):
             try:
+                api = args[21] if len(args) > 21 else None
                 current, request, card, _, desc, ref = parts(args)
                 flow.check_style(current, request, card, desc, ref)
-                result = agent.run_task(**request, phase="plan", style_card=card)
+                result = agent.run_task(**request, phase="plan", style_card=card, api_config=api)
                 new = flow.attach_idea(current, result)
                 if result.get("status") != "plan_ready":
                     return {state: new, status: result.get("report", "资料暂不可用，请重试。"), **stages(0), **lock_files()}
@@ -194,9 +225,10 @@ def build_studio(examples, fallback_products, desktop_html):
 
         def create_final(*args):
             try:
+                api = args[21] if len(args) > 21 else None
                 current, request, card, plan, desc, ref = parts(args)
                 kwargs = flow.generation_args(current, request, card, plan, desc, ref)
-                result = agent.run_task(**request, **kwargs)
+                result = agent.run_task(**request, api_config=api, **kwargs)
                 new = flow.attach_final(current, result)
                 if result.get("status") != "ready":
                     return {state: new, status: result.get("report", "本次暂未完成，请重试。"), **stages(0, 1, 2), **lock_files()}
@@ -243,16 +275,20 @@ def build_studio(examples, fallback_products, desktop_html):
                      concurrency_id="zhiheng_creation", trigger_mode="once")
         brief_button.click(confirm_brief, inputs=request_inputs, **event)
         style_button.click(approve_style, inputs=[*all_inputs, draft_source], **event)
-        infer_button.click(extract_style, inputs=[description, reference, preset, state], **event)
+        infer_button.click(extract_style, inputs=[description, reference, preset, state, api_state], **event)
+        api_save.click(save_api, inputs=[api_base, api_key, api_model], outputs=[api_state, api_notice],
+                       api_visibility="private", queue=False)
+        api_reset.click(reset_api, inputs=[], outputs=[api_state, api_notice],
+                        api_visibility="private", queue=False)
         preset.input(lambda name, current: load_style(name, current), inputs=[preset, state], **event)
         saved.input(lambda name, current, stored: load_style(name, current, stored), inputs=[saved, state, favourites], **event)
         save_button.click(store_style, inputs=[favourites, *card_inputs], **event)
         delete_button.click(remove_style, inputs=[favourites, saved], **event)
         favourites.change(lambda stored: gr.update(choices=saved_choices(stored), value=None), inputs=[favourites], outputs=[saved],
                           api_visibility="private", queue=False)
-        idea_button.click(create_idea, inputs=all_inputs, **event)
+        idea_button.click(create_idea, inputs=[*all_inputs, api_state], **event)
         plan_button.click(approve_plan, inputs=all_inputs, **event)
-        final_button.click(create_final, inputs=all_inputs, **event)
+        final_button.click(create_final, inputs=[*all_inputs, api_state], **event)
         final_confirm.click(approve_final, inputs=all_inputs, **event)
         for component in request_inputs:
             component.input(invalidate_request, inputs=[], **{**event, "trigger_mode": "always_last"})

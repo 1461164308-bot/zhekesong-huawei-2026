@@ -111,14 +111,16 @@ def _inference_text(value: str, label: str, limit: int) -> str:
     return clean
 
 
-def infer_style(description: str, reference: str, base_name: str = "专业可信") -> dict:
+def infer_style(description: str, reference: str, base_name: str = "专业可信",
+                api_config: dict | None = None) -> dict:
     description = _inference_text(description, "风格描述", 1500)
     reference = _inference_text(reference, "参考文案", 8000)
     if not description and not reference:
         raise StyleError("请填写风格描述或参考文案。")
     base_style = get_preset(base_name)
     try:
-        result = LLMClient().json(
+        client = LLMClient(api_config) if api_config else LLMClient()
+        result = client.json(
             STYLE_PROMPT,
             {"description": description, "reference": reference, "base_style": base_style},
             max_tokens=1800,
