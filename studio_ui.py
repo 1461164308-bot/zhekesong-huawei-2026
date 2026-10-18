@@ -21,7 +21,7 @@ def build_studio(examples, fallback_products, desktop_html):
         draft_source = gr.State(flow.style_source_key())
         favourites = gr.BrowserState({}, storage_key="zhiheng-style-cards-v1",
                                      secret=os.environ.get("STYLE_STORAGE_SECRET", "zhiheng-browser-style-cards-v1"))
-        gr.HTML(desktop_html)
+        gr.HTML(desktop_html, elem_id="zh-liquid-header")
         gr.Markdown("## 知衡 · 华为PC图文营销智能体\n确认需求 → 确认风格卡 → 修改并确认思路 → 审阅终稿 → 确认下载。", elem_id="zh-app-title")
         gr.Markdown("每一步都可修改。修改后需要重新确认相应步骤；终稿按所选平台提供文字、图片和排版。", elem_id="zh-guide")
         with gr.Row(elem_id="zh-connection"):
