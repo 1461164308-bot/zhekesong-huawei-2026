@@ -21,6 +21,10 @@ artifacts/
 evidence/
 *_secrets.json
 zhiheng-private-archive/
+# User-provided authorized knowledge source; never publish raw materials.
+/任德耀新建华为PC知识库/
+# Runtime image cache from knowledge retrieval; contains authorized source images.
+ima-huawei-pc-*/
 ~$*
 
 .dsh-office-*/

@@ -7,9 +7,14 @@ read from server environment and never included in the result or exported files.
 """
 from __future__ import annotations
 
+from collections import OrderedDict
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from functools import lru_cache
+import hashlib
 import html
+import threading
 import json
 import os
 from pathlib import Path
@@ -34,18 +39,82 @@ SCENARIOS = list(SCENE_RULES)
 VERSION = "1.0.0"
 
 
-@lru_cache(maxsize=1)
+_SESSION_IMA: ContextVar[dict | None] = ContextVar("zhiheng_session_ima", default=None)
+_SESSION_CLIENTS: OrderedDict[str, IMAClient] = OrderedDict()
+_SESSION_LOCK = threading.Lock()
+
+
+def resolve_ima_config(raw: dict | None) -> dict | None:
+    """Validate a user's per-session live ima settings; empty means use the default source.
+
+    The result lives only in that user's Gradio session state: never written to
+    disk, exported, logged or echoed back to the page.
+    """
+    if not isinstance(raw, dict):
+        return None
+    client_id = str(raw.get("client_id", "") or "").strip()
+    api_key = str(raw.get("api_key", "") or "").strip()
+    kb_name = str(raw.get("kb_name", "") or "").strip()
+    if not client_id and not api_key and not kb_name:
+        return None
+    if not client_id or not api_key or not kb_name:
+        raise IMAError("实时 ima 需要同时填写 ClientID、API Key 和共享知识库名称。")
+    if len(client_id) > 200 or len(api_key) > 400 or len(kb_name) > 120:
+        raise IMAError("ima 配置过长，请检查后重试。")
+    if any(ch in value for value in (client_id, api_key) for ch in " \t\r\n"):
+        raise IMAError("ClientID 与 API Key 不能包含空白字符。")
+    return {"client_id": client_id, "api_key": api_key, "kb_name": kb_name}
+
+
+@contextmanager
+def ima_session(config: dict | None):
+    """Route every _ima() call in this block to the session's live ima settings."""
+    token = _SESSION_IMA.set(config or None)
+    try:
+        yield
+    finally:
+        _SESSION_IMA.reset(token)
+
+
+def _session_client(config: dict) -> IMAClient:
+    # Reuse a bounded set of clients so catalog and knowledge-base lookups stay cached.
+    key = hashlib.sha256(json.dumps(config, sort_keys=True).encode("utf-8")).hexdigest()
+    with _SESSION_LOCK:
+        client = _SESSION_CLIENTS.get(key)
+        if client is None:
+            client = IMAClient(client_id=config["client_id"], api_key=config["api_key"], kb_name=config["kb_name"])
+            _SESSION_CLIENTS[key] = client
+            while len(_SESSION_CLIENTS) > 8:
+                _SESSION_CLIENTS.popitem(last=False)
+        else:
+            _SESSION_CLIENTS.move_to_end(key)
+        return client
+
+
 def _ima() -> IMAClient:
-    mode = os.environ.get("IMA_SOURCE_MODE", "live").strip().lower()
+    session = _SESSION_IMA.get()
+    if session:
+        # User-supplied live ima always wins and never falls back to local material.
+        return _session_client(session)
+    from knowledge_store import get_archive_path, get_workspace_archive
+    explicit = "IMA_SOURCE_MODE" in os.environ
+    archive_configured = any(key in os.environ for key in ("IMA_ARCHIVE_PATH", "IMA_ARCHIVE_URL", "IMA_ARCHIVE_SHA256", "IMA_ARCHIVE_TOKEN"))
+    mode = os.environ.get("IMA_SOURCE_MODE", "archive" if archive_configured else "live").strip().lower()
     if mode not in {"live", "archive"}:
         raise IMAError("资料模式配置无效，请部署者将 IMA_SOURCE_MODE 设为 live 或 archive。")
     client = IMAClient()
+    workspace = False
+    path = None
+    if not explicit and not archive_configured:
+        path = get_workspace_archive()
+        workspace = bool(path)
     if mode == "archive":
-        from knowledge_store import get_archive_path
         path = get_archive_path()
         if not path:
-            raise IMAError("主办方资料包缓存尚未就绪，请联系部署者检查私有存储配置。")
+            raise IMAError("显式归档配置无效或缓存尚未就绪，请检查 IMA_ARCHIVE_PATH / URL 与私有存储配置；未自动使用工作区资料。")
+    if path:
         client.load_archive(path)
+        client._workspace_authorized = workspace
     return client
 
 
@@ -59,7 +128,9 @@ def get_products() -> list[str]:
 def get_connection_status() -> str:
     try:
         state = _ima().connection_status()
-        if state.get("offline_archive"):
+        if state.get("workspace_authorized"):
+            message = "**工作区授权知识库 · 本地只读 · 非实时 ima**  \n资料仅用于获授权工作流，读取时间不代表资料更新日期。"
+        elif state.get("offline_archive"):
             message = ("**主办方 ZIP 缓存模式 · 非实时 ima 检索**  \n"
                        f"资料对应：{html.escape(state.get('kb_name', '指定共享知识库'))}；"
                        "本部署按用户授权使用主办方同库资料包；原文配额恢复后可由部署者切回实时模式。")
@@ -69,6 +140,8 @@ def get_connection_status() -> str:
                        f"角色：{html.escape(str(state.get('role', '已授权成员')))}")
         else:
             message = "**ima 尚未连接** · " + html.escape(state.get("message", "请联系部署者核对服务端凭证与共享库权限。"))
+    except IMAError as exc:
+        message = "**知识库来源未就绪** · " + html.escape(str(exc))
     except Exception:
         message = "**ima 暂未连接** · 请刷新连接状态，或联系部署者核对共享库权限。"
     model = os.environ.get("LLM_MODEL", DEFAULT_MODEL)

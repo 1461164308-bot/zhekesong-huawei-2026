@@ -1,8 +1,9 @@
-"""Read an explicitly configured, private organizer-provided knowledge archive.
+"""Read private configured archives or the fixed user-authorized workspace P1.
 
 Local: IMA_ARCHIVE_PATH. Remote: IMA_ARCHIVE_URL, IMA_ARCHIVE_TOKEN and
-IMA_ARCHIVE_SHA256. This module never uploads data or changes configuration.
-A failed/absent configuration returns None without exposing request details.
+IMA_ARCHIVE_SHA256. Automatic workspace snapshots are ignored local caches;
+explicit source settings always take precedence. No uploads or config changes.
+Configured archive failures return None without exposing request details.
 """
 from __future__ import annotations
 
@@ -33,6 +34,97 @@ _STORAGE_HOSTS = frozenset({
     "modelhub-cn-shanghai.oss-cn-shanghai.aliyuncs.com",
 })
 _LOCK = threading.Lock()
+WORKSPACE_ROOT = Path(__file__).resolve().parent
+WORKSPACE_SOURCE = Path("任德耀新建华为PC知识库") / "华为PC全板块深度知识库_v7"
+
+
+def get_workspace_archive() -> str | None:
+    """Snapshot only authorized P1 material, never the repository or secret files.
+
+    Content-addressed snapshots preserve freshness across restarts and refreshes.
+    The local uncompressed limits match IMAClient.load_archive, independently of
+    the stricter remote download limit. No network or credential access occurs.
+    """
+    source = WORKSPACE_ROOT / WORKSPACE_SOURCE
+    if not source.exists():
+        return None
+    from ima_client import IMAError
+    try:
+        primary = source / "P1-产品参数库"
+        for path in (source.parent, source, primary):
+            if path.is_symlink() or (path.exists() and getattr(path.lstat(), "st_file_attributes", 0) & 0x400):
+                raise ValueError("linked source")
+        if not primary.is_dir():
+            raise ValueError("missing P1")
+        digest = hashlib.sha256()
+        files = []
+        total = 0
+        seen = 0
+        excluded = re.compile(r"secret|credential|token|api.?key|password|private|内部|机密|待审核|历史归档", re.I)
+        for folder, dirs, names in os.walk(primary, followlinks=False):
+            seen += len(dirs) + len(names)
+            if seen > 12000:
+                raise ValueError("local entry limit")
+            for name in dirs + names:
+                path = Path(folder) / name
+                if path.is_symlink() or getattr(path.lstat(), "st_file_attributes", 0) & 0x400:
+                    raise ValueError("linked entry")
+                if any(x in name for x in (":", "\\", "\0")) or name in {".", ".."}:
+                    raise ValueError("unsafe path")
+            dirs[:] = sorted(name for name in dirs if not name.startswith(".") and not excluded.search(name))
+            for name in sorted(names):
+                path = Path(folder) / name
+                if name.startswith(".") or excluded.search(name):
+                    continue
+                if path.suffix.lower() not in {".md", ".txt", ".csv", ".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+                    continue
+                size = path.stat().st_size
+                if not path.is_file() or size > 25 * 1024 * 1024 or total + size > 512 * 1024 * 1024:
+                    raise ValueError("local size limit")
+                with path.open("rb") as stream:
+                    content = stream.read(25 * 1024 * 1024 + 1)
+                relative = path.relative_to(source).as_posix()
+                total += len(content)
+                if len(content) > 25 * 1024 * 1024 or total > 512 * 1024 * 1024 or len(files) >= 12000:
+                    raise ValueError("local limit")
+                files.append((relative, content))
+        for name, content in sorted(files):
+            digest.update(name.encode() + b"\0" + hashlib.sha256(content).digest())
+        if not files:
+            raise ValueError("empty P1")
+        root = WORKSPACE_ROOT / ".local" / "knowledge-cache"
+        for path in (root.parent, root):
+            if path.is_symlink() or (path.exists() and getattr(path.lstat(), "st_file_attributes", 0) & 0x400):
+                raise ValueError("linked cache")
+        root.mkdir(parents=True, exist_ok=True)
+        target = root / (digest.hexdigest() + ".zip")
+        with _LOCK:
+            if target.is_symlink() or (target.exists() and getattr(target.lstat(), "st_file_attributes", 0) & 0x400):
+                raise ValueError("linked cache file")
+            valid = False
+            if target.is_file() and target.stat().st_size <= 512 * 1024 * 1024:
+                try:
+                    with zipfile.ZipFile(target) as bundle:
+                        valid = (len(bundle.infolist()) == len(files)
+                                 and {i.filename for i in bundle.infolist()} == {n for n, _ in files}
+                                 and all(bundle.getinfo(n).file_size == len(c)
+                                         and hashlib.sha256(bundle.read(n)).digest() == hashlib.sha256(c).digest()
+                                         for n, c in files))
+                except (OSError, ValueError, RuntimeError, zipfile.BadZipFile):
+                    valid = False
+            if not valid:
+                with tempfile.NamedTemporaryFile(dir=root, suffix=".part", delete=False) as stream:
+                    partial = Path(stream.name)
+                try:
+                    with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
+                        for name, content in sorted(files):
+                            bundle.writestr(name, content)
+                    os.replace(partial, target)
+                finally:
+                    partial.unlink(missing_ok=True)
+        return str(target)
+    except (OSError, ValueError):
+        raise IMAError("工作区授权知识库无效：请检查 P1 结构、文件安全性与大小上限；未回退联网 ima。") from None
 
 
 def _validated_url(url: str, *, initial: bool = False) -> str:
