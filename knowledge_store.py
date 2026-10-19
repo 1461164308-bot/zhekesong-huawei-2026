@@ -15,6 +15,7 @@ import re
 import tempfile
 import threading
 import time
+import unicodedata
 from urllib.parse import urljoin, urlsplit
 import zipfile
 
@@ -36,58 +37,103 @@ _STORAGE_HOSTS = frozenset({
 _LOCK = threading.Lock()
 WORKSPACE_ROOT = Path(__file__).resolve().parent
 WORKSPACE_SOURCE = Path("任德耀新建华为PC知识库") / "华为PC全板块深度知识库_v7"
+# Ordered: the authorized PC library wins any model-name collision, then the
+# generated official product database widens coverage to phones, tablets,
+# wearables and the rest of the consumer catalogue.
+WORKSPACE_SOURCES = (
+    WORKSPACE_SOURCE,
+    Path("华为官方产品库_v1"),
+)
+_PRODUCT_KEY = re.compile(r"[\s_\-·（）()]+")
+
+
+def _product_key(name: str) -> str:
+    """Compare model folder names across sources without inventing aliases."""
+    value = unicodedata.normalize("NFKC", name).casefold()
+    value = re.sub(r"^(?:huawei|华为)\s*", "", value)
+    return _PRODUCT_KEY.sub("", value)
+
+
+def _authorized_sources() -> list[Path]:
+    """Every configured workspace source that currently exists, in priority order."""
+    sources = []
+    for relative in WORKSPACE_SOURCES:
+        source = WORKSPACE_ROOT / relative
+        if source.exists():
+            sources.append(source)
+    return sources
 
 
 def get_workspace_archive() -> str | None:
     """Snapshot only authorized P1 material, never the repository or secret files.
 
-    Content-addressed snapshots preserve freshness across restarts and refreshes.
-    The local uncompressed limits match IMAClient.load_archive, independently of
-    the stricter remote download limit. No network or credential access occurs.
+    Several workspace sources are merged into one P1 tree; a model folder that
+    appears in more than one source is taken from the first source only, so the
+    catalogue never contains two entries for the same model. Content-addressed
+    snapshots preserve freshness across restarts and refreshes. The local
+    uncompressed limits match IMAClient.load_archive, independently of the
+    stricter remote download limit. No network or credential access occurs.
     """
-    source = WORKSPACE_ROOT / WORKSPACE_SOURCE
-    if not source.exists():
+    sources = _authorized_sources()
+    if not sources:
         return None
     from ima_client import IMAError
     try:
-        primary = source / "P1-产品参数库"
-        for path in (source.parent, source, primary):
-            if path.is_symlink() or (path.exists() and getattr(path.lstat(), "st_file_attributes", 0) & 0x400):
-                raise ValueError("linked source")
-        if not primary.is_dir():
-            raise ValueError("missing P1")
         digest = hashlib.sha256()
         files = []
         total = 0
         seen = 0
+        seen_products: set[str] = set()
+        seen_paths: set[str] = set()
         excluded = re.compile(r"secret|credential|token|api.?key|password|private|内部|机密|待审核|历史归档", re.I)
-        for folder, dirs, names in os.walk(primary, followlinks=False):
-            seen += len(dirs) + len(names)
-            if seen > 12000:
-                raise ValueError("local entry limit")
-            for name in dirs + names:
-                path = Path(folder) / name
-                if path.is_symlink() or getattr(path.lstat(), "st_file_attributes", 0) & 0x400:
-                    raise ValueError("linked entry")
-                if any(x in name for x in (":", "\\", "\0")) or name in {".", ".."}:
-                    raise ValueError("unsafe path")
-            dirs[:] = sorted(name for name in dirs if not name.startswith(".") and not excluded.search(name))
-            for name in sorted(names):
-                path = Path(folder) / name
-                if name.startswith(".") or excluded.search(name):
-                    continue
-                if path.suffix.lower() not in {".md", ".txt", ".csv", ".png", ".jpg", ".jpeg", ".webp", ".gif"}:
-                    continue
-                size = path.stat().st_size
-                if not path.is_file() or size > 25 * 1024 * 1024 or total + size > 512 * 1024 * 1024:
-                    raise ValueError("local size limit")
-                with path.open("rb") as stream:
-                    content = stream.read(25 * 1024 * 1024 + 1)
-                relative = path.relative_to(source).as_posix()
-                total += len(content)
-                if len(content) > 25 * 1024 * 1024 or total > 512 * 1024 * 1024 or len(files) >= 12000:
-                    raise ValueError("local limit")
-                files.append((relative, content))
+        for source in sources:
+            primary = source / "P1-产品参数库"
+            for path in (source.parent, source, primary):
+                if path.is_symlink() or (path.exists() and getattr(path.lstat(), "st_file_attributes", 0) & 0x400):
+                    raise ValueError("linked source")
+            if not primary.is_dir():
+                raise ValueError("missing P1")
+            for folder, dirs, names in os.walk(primary, followlinks=False):
+                depth = len(Path(folder).relative_to(primary).parts)
+                seen += len(dirs) + len(names)
+                if seen > 12000:
+                    raise ValueError("local entry limit")
+                for name in dirs + names:
+                    path = Path(folder) / name
+                    if path.is_symlink() or getattr(path.lstat(), "st_file_attributes", 0) & 0x400:
+                        raise ValueError("linked entry")
+                    if any(x in name for x in (":", "\\", "\0")) or name in {".", ".."}:
+                        raise ValueError("unsafe path")
+                keep = []
+                for name in sorted(dirs):
+                    if name.startswith(".") or excluded.search(name):
+                        continue
+                    if depth == 1:  # model folders: one entry per model across all sources
+                        key = _product_key(name)
+                        if key in seen_products:
+                            continue
+                        seen_products.add(key)
+                    keep.append(name)
+                dirs[:] = keep
+                for name in sorted(names):
+                    path = Path(folder) / name
+                    if name.startswith(".") or excluded.search(name):
+                        continue
+                    if path.suffix.lower() not in {".md", ".txt", ".csv", ".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+                        continue
+                    size = path.stat().st_size
+                    if not path.is_file() or size > 25 * 1024 * 1024 or total + size > 512 * 1024 * 1024:
+                        raise ValueError("local size limit")
+                    with path.open("rb") as stream:
+                        content = stream.read(25 * 1024 * 1024 + 1)
+                    relative = path.relative_to(source).as_posix()
+                    if relative in seen_paths:
+                        continue
+                    seen_paths.add(relative)
+                    total += len(content)
+                    if len(content) > 25 * 1024 * 1024 or total > 512 * 1024 * 1024 or len(files) >= 12000:
+                        raise ValueError("local limit")
+                    files.append((relative, content))
         for name, content in sorted(files):
             digest.update(name.encode() + b"\0" + hashlib.sha256(content).digest())
         if not files:

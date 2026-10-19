@@ -29,7 +29,13 @@ _DEFAULT_KB = ""
 _URL_RE = re.compile(r"https?://[^\s<>\]\)\"']+", re.I)
 _FORBIDDEN = re.compile(r"竞品|对比|历史归档|待审核|MacBook|ThinkPad|联想|惠普|戴尔", re.I)
 _SIGNED = re.compile(r"sign|signature|token|credential|authorization|expires|secret|api.?key", re.I)
-_MODEL = re.compile(r"(?:HUAWEI\s+)?MateBook\b|(?:华为)?擎云\s*[A-Za-z]\d", re.I)
+_MODEL = re.compile(
+    r"(?:HUAWEI\s+)?MateBook\b|(?:华为)?擎云\s*[A-Za-z]\d"
+    r"|^(?:HUAWEI|华为|畅享|nova\b|WATCH\b|FreeBuds|FreeArc|FreeClip|MatePad\b|智慧屏|Vision\b"
+    r"|MateView\b|Smart\b|Sound\b|PixLab\b|Eyewear\b|Band\s*\d|手环|路由|Router\b|门锁)",
+    re.I)
+# P1 subfolders that index material instead of holding model folders.
+_INDEX_CATEGORY = re.compile(r"型号检索卡|扩展产品目录|官方公开价格快照|全库横向索引")
 
 
 def _normal(value: str) -> str:
@@ -268,7 +274,7 @@ class IMAClient:
         names: list[str] = []
         for category in categories:
             title = category["title"]
-            if re.match(r"0[123]-", title):
+            if not _INDEX_CATEGORY.search(title):
                 for entry in self._children(category):
                     if _folder(entry) and _MODEL.search(entry["title"]):
                         self._primary.append(entry)

@@ -52,6 +52,27 @@ class LocalKnowledgeTests(unittest.TestCase):
         result = client.retrieve('HUAWEI MateBook Test 2026')
         self.assertTrue(any('工作区授权知识库' in w and '非实时 ima' in w for w in result['warnings']))
 
+    def test_official_product_db_extends_catalog_and_dedupes_same_model(self):
+        db = self.root / '华为官方产品库_v1' / 'P1-产品参数库'
+        phone = db / '01-手机' / 'HUAWEI Mate 90 Pro'
+        phone.mkdir(parents=True)
+        (phone / '产品事实.md').write_text('# HUAWEI Mate 90 Pro\n合成手机事实。', encoding='utf-8')
+        duplicate = db / '04-笔记本' / 'MateBook Test 2026'
+        duplicate.mkdir(parents=True)
+        (duplicate / '产品事实.md').write_text('# 重复型号\n不应被收录。', encoding='utf-8')
+        client = agent._ima()
+        self.assertEqual(sorted(client.catalog()), ['HUAWEI Mate 90 Pro', 'HUAWEI MateBook Test 2026'])
+        result = client.retrieve('HUAWEI Mate 90 Pro')
+        self.assertIn('合成手机事实', result['sources'][0]['text'])
+        self.assertEqual(len(list((self.root / '.local' / 'knowledge-cache').glob('*.zip'))), 1)
+
+    def test_index_folders_never_become_products(self):
+        index = self.root / '华为官方产品库_v1' / 'P1-产品参数库' / '16-型号检索卡' / 'HUAWEI Nova 99'
+        index.mkdir(parents=True)
+        (index / '产品事实.md').write_text('# 索引卡\n不是参数事实。', encoding='utf-8')
+        entries = [entry for entry in agent._ima()._products]
+        self.assertNotIn('HUAWEI Nova 99', entries)
+
     def test_explicit_invalid_configuration_is_visible_in_public_status(self):
         with patch.dict(os.environ, {'IMA_SOURCE_MODE': 'bogus'}):
             self.assertIn('IMA_SOURCE_MODE', agent.get_connection_status())
