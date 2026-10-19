@@ -15,14 +15,14 @@ from style_cards import (STYLE_FIELDS, PRESET_NAMES, StyleError, get_preset, sty
 def build_studio(examples, fallback_products, desktop_html):
     import agent
 
-    with gr.Blocks(title="知衡 · 华为PC图文营销智能体", analytics_enabled=False) as app:
+    with gr.Blocks(title="知衡 · 华为生态图文营销智能体", analytics_enabled=False) as app:
         state = gr.State({})
         api_state = gr.State({})
         draft_source = gr.State(flow.style_source_key())
         favourites = gr.BrowserState({}, storage_key="zhiheng-style-cards-v1",
                                      secret=os.environ.get("STYLE_STORAGE_SECRET", "zhiheng-browser-style-cards-v1"))
         gr.HTML(desktop_html, elem_id="zh-liquid-header")
-        gr.Markdown("## 知衡 · 华为PC图文营销智能体\n确认需求 → 确认风格卡 → 修改并确认思路 → 审阅终稿 → 确认下载。", elem_id="zh-app-title")
+        gr.Markdown("## 知衡 · 华为生态图文营销智能体\n确认需求 → 确认风格卡 → 修改并确认思路 → 审阅终稿 → 确认下载。PC 用授权知识库；手机/平板/穿戴/生态组合请在补充要求中附官方商城商品页。", elem_id="zh-app-title")
         gr.Markdown("每一步都可修改。修改后需要重新确认相应步骤；终稿按所选平台提供文字、图片和排版。", elem_id="zh-guide")
         with gr.Row(elem_id="zh-connection"):
             connection = gr.Markdown("正在读取资料状态…", elem_id="zh-connection-body")
@@ -46,14 +46,14 @@ def build_studio(examples, fallback_products, desktop_html):
                         api_reset = gr.Button("清空当前设置", size="sm")
                     api_notice = gr.Markdown("当前：尚未配置。填写后点「应用自定义 API」。")
                 gr.Markdown("### 01 / 确认营销需求")
-                product = gr.Dropdown(fallback_products, label="产品型号", allow_custom_value=True, interactive=True)
+                product = gr.Dropdown(fallback_products, label="产品型号（PC / 手机 / 平板 / 穿戴 / 生态组合）", allow_custom_value=True, interactive=True)
                 audience = gr.Textbox(label="目标人群", placeholder="例如：经常处理文档和表格的职场人", lines=2)
                 with gr.Row():
                     scenario = gr.Dropdown(list(agent.SCENARIOS), value="开学季", label="营销场景")
                     platform = gr.Dropdown(agent.PLATFORMS, value="小红书", label="发布平台")
                 goal = gr.Dropdown(["种草了解", "选购决策", "到店体验", "企业咨询"], value="种草了解", label="营销目标")
                 requirements = gr.Textbox(label="补充要求 / 华为官方商城商品链接", lines=3,
-                                          placeholder="门店信息、内容要求，或 https://www.vmall.com/product/商品编号.html")
+                                          placeholder="内容要求；手机/平板/生态组合请附 https://www.vmall.com/product/商品编号.html（可多个）")
                 with gr.Row(elem_id="zh-examples"):
                     example_buttons = [gr.Button(label, size="sm") for label in ["校园 · 小红书", "办公 · 公众号", "到店 · 朋友圈"]]
                 brief_button = gr.Button("确认需求，进入风格选择", variant="primary")

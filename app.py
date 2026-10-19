@@ -15,7 +15,7 @@ from urllib.parse import urlsplit, urlunsplit
 import gradio as gr
 from visual_theme import DESKTOP_HTML, DESKTOP_CSS, DESKTOP_JS
 
-APP_TITLE = "知衡 · 华为PC图文营销智能体"
+APP_TITLE = "知衡 · 华为生态图文营销智能体"
 PLATFORMS = ["小红书", "微信公众号", "门店朋友圈", "门店海报"]
 SCENARIOS = ["开学季", "职场办公", "内容创作", "家庭换新", "企业采购", "门店到访", "新品首发", "节日营销"]
 GOALS = ["种草了解", "选购决策", "到店体验", "企业咨询"]
@@ -23,6 +23,9 @@ FALLBACK_PRODUCTS = [
     "HUAWEI MateBook Pro S",
     "HUAWEI MateBook 14 酷睿 Ultra",
     "HUAWEI MateBook D 16 2024",
+    "HUAWEI Mate 70 Pro",
+    "HUAWEI MatePad Pro 13.2",
+    "HUAWEI WATCH 5",
 ]
 
 EXAMPLES = [

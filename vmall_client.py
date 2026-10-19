@@ -6,7 +6,9 @@ from html.parser import HTMLParser
 import json
 import re
 import unicodedata
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import parse_qsl, urljoin, urlsplit
+import tempfile
+from pathlib import Path
 
 import requests
 
@@ -105,6 +107,11 @@ def _normal(value: str) -> str:
 
 def _identity(product: str, title: str, model: str = "") -> bool:
     requested, actual = _normal(product), _normal(title + " " + model)
+    # Ecosystem models (phone/tablet/wearable) and multi-device combos are matched
+    # by requiring every requested device token to appear in the page identity.
+    if not re.search(r"matebook|擎云", requested, re.I):
+        parts = [part for part in re.split(r"[+＋、/,，]|套装|组合|生态", requested) if part.strip()]
+        return bool(parts) and all(part in actual for part in parts)
     core = re.compile(r"matebook(?:xpro|gt14|d16se版?|d16|d14|pros|pro|fold|14|16)")
     want, found = core.search(requested), list(core.finditer(actual))
     if not want or not found or any(match.group() != want.group() for match in found):
@@ -140,7 +147,7 @@ def _products(value):
                 yield from _products(obj[key])
 
 
-def _extract(page: str, product: str, url: str) -> tuple[str, str]:
+def _extract(page: str, product: str, url: str) -> tuple[str, str, list[str]]:
     parser = _Page()
     try:
         parser.feed(page)
@@ -191,7 +198,73 @@ def _extract(page: str, product: str, url: str) -> tuple[str, str]:
     details = list(dict.fromkeys(text for text in details if text))
     if len("".join(details)) < 20:
         raise VmallError("商城商品详情不可读取或内容不足，未用标题、搜索摘要或模型常识补造事实。")
-    return title[:300], (title + "\n" + "\n".join(details))[:26000]
+    return title[:300], (title + "\n" + "\n".join(details))[:26000], _image_urls(parser, structured)
+
+
+_IMG_HOSTS = ("vmall.com", "alicdn.com", "huawei.com", "dbankcdn.com")
+_MAX_IMAGE = 4 * 1024 * 1024
+
+
+def _image_url(value) -> str:
+    if not isinstance(value, str) or not value.startswith("https://"):
+        return ""
+    try:
+        parsed = urlsplit(value)
+    except ValueError:
+        return ""
+    host = parsed.hostname or ""
+    if parsed.username or parsed.password:
+        return ""
+    if not any(host == name or host.endswith("." + name) for name in _IMG_HOSTS):
+        return ""
+    if any(re.search(r"sign|token|secret|credential", key, re.I) for key, _ in parse_qsl(parsed.query)):
+        return ""
+    return value
+
+
+def _image_urls(parser: _Page, structured: list) -> list[str]:
+    found: list[str] = []
+    for item in structured:
+        raw = item.get("image") if isinstance(item, dict) else None
+        values = raw if isinstance(raw, list) else [raw]
+        for value in values:
+            if isinstance(value, dict):
+                value = value.get("url") or value.get("contentUrl")
+            found.append(value if isinstance(value, str) else "")
+    for node in parser.root.walk():
+        if node.tag == "meta":
+            prop = (node.attrs.get("property") or node.attrs.get("name") or "").lower()
+            if prop in {"og:image", "og:image:secure_url", "twitter:image"}:
+                found.append(node.attrs.get("content", ""))
+        elif node.tag == "img":
+            found.append(node.attrs.get("src") or node.attrs.get("data-src") or "")
+    seen, urls = set(), []
+    for value in (x for x in (_image_url(v) for v in found) if x):
+        if value not in seen:
+            seen.add(value)
+            urls.append(value)
+    return urls
+
+
+def _download_image(session, url: str, timeout: float) -> bytes:
+    try:
+        response = session.get(url, timeout=(min(6, timeout), timeout), allow_redirects=False, stream=True,
+                               headers={"Accept": "image/*", "User-Agent": "ZhiHeng-PublicSource/1.0"})
+        with response:
+            if response.status_code != 200:
+                raise VmallError("商城图片暂时无法读取。")
+            if "image" not in response.headers.get("Content-Type", "").lower():
+                raise VmallError("商城返回的不是图片内容。")
+            data = bytearray()
+            for chunk in response.iter_content(65536):
+                data.extend(chunk)
+                if len(data) > _MAX_IMAGE:
+                    raise VmallError("商城图片超过读取上限。")
+            if not data:
+                raise VmallError("商城图片为空。")
+            return bytes(data)
+    except requests.RequestException:
+        raise VmallError("商城图片下载失败。") from None
 
 
 def _download(session, url: str, timeout: float) -> tuple[str, str]:
@@ -227,8 +300,7 @@ def _download(session, url: str, timeout: float) -> tuple[str, str]:
     raise VmallError("商城重定向次数超过上限，未取得依据。")
 
 
-def fetch_vmall_sources(product: str, text: str, *, timeout=12, max_sources=2) -> list[dict]:
-    """Fetch only explicit canonical product URLs in user requirements/revisions."""
+def _product_urls(text: str, limit: int) -> list[str]:
     urls = []
     for match in _URL.finditer(str(text or "")):
         raw = match.group().rstrip(".,;:!?")
@@ -237,8 +309,66 @@ def fetch_vmall_sources(product: str, text: str, *, timeout=12, max_sources=2) -
         canonical = _validate_url(raw)
         if canonical not in urls:
             urls.append(canonical)
-    limit = max(0, min(int(max_sources), 2))
+    return urls[:limit]
+
+
+def _save_image(raw: bytes, index: int) -> str:
+    folder = Path(tempfile.mkdtemp(prefix="zhiheng-vmall-"))
+    if raw[:3] == b"\xff\xd8\xff":
+        suffix = ".jpg"
+    elif raw[:8] == b"\x89PNG\r\n\x1a\n":
+        suffix = ".png"
+    else:
+        suffix = ".webp"
+    path = folder / f"vmall-{index:02d}{suffix}"
+    path.write_bytes(raw)
+    return str(path)
+
+
+def fetch_vmall_assets(product: str, text: str, *, timeout=12, max_sources=3,
+                       max_images=6) -> dict:
+    """Read explicit official product pages, returning facts and product images.
+
+    Only the pages the user pasted are read; nothing is searched for. Images are
+    the page's own product media (JSON-LD/og:image/markup) and are tagged with the
+    requested model so the agent can keep image provenance separate from the
+    knowledge base.
+    """
+    limit = max(0, min(int(max_sources), 3))
+    urls = _product_urls(text, limit)
     if not urls or not limit:
+        return {"sources": [], "images": []}
+    timeout = max(1.0, min(float(timeout), 30.0))
+    want_images = max(0, min(int(max_images), 8))
+    sources, images = [], []
+    with requests.Session() as session:
+        session.trust_env = False
+        session.auth = None
+        for url in urls:
+            session.cookies.clear()
+            content, final_url = _download(session, url, timeout)
+            title, body, image_urls = _extract(content, str(product), final_url)
+            sources.append({"title": title, "text": body, "kind": "facts", "official_url": final_url,
+                            "retrieved_at": datetime.now(timezone.utc).isoformat(), "origin": "official_vmall"})
+            for image_url in image_urls:
+                if len(images) >= want_images:
+                    break
+                try:
+                    raw = _download_image(session, image_url, timeout)
+                    path = _save_image(raw, len(images) + 1)
+                except (VmallError, OSError):
+                    continue
+                images.append({"title": title, "caption": "官方商城商品图，画面内容未逐像素核验。",
+                               "model": str(product), "path": path, "url": image_url,
+                               "source_title": title, "origin": "official_vmall",
+                               "retrieved_at": datetime.now(timezone.utc).isoformat()})
+    return {"sources": sources, "images": images}
+
+
+def fetch_vmall_sources(product: str, text: str, *, timeout=12, max_sources=2) -> list[dict]:
+    """Fetch only explicit canonical product URLs in user requirements/revisions."""
+    limit = max(0, min(int(max_sources), 2))
+    if not limit or not _product_urls(text, limit):
         return []
     timeout = max(1.0, min(float(timeout), 30.0))
     sources = []
@@ -247,10 +377,10 @@ def fetch_vmall_sources(product: str, text: str, *, timeout=12, max_sources=2) -
     with requests.Session() as session:
         session.trust_env = False
         session.auth = None
-        for url in urls[:limit]:
+        for url in _product_urls(text, limit):
             session.cookies.clear()
             content, final_url = _download(session, url, timeout)
-            title, body = _extract(content, str(product), final_url)
+            title, body, _ = _extract(content, str(product), final_url)
             sources.append({"title": title, "text": body, "kind": "facts", "official_url": final_url,
                             "retrieved_at": datetime.now(timezone.utc).isoformat(), "origin": "official_vmall"})
     return sources

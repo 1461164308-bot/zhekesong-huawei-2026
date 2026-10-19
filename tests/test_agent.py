@@ -581,7 +581,8 @@ class AgentRegressionTests(unittest.TestCase):
                   "official_url": "https://www.vmall.com/product/12345.html",
                   "retrieved_at": "2026-10-18T08:00:00+00:00", "origin": "official_vmall"}
         self.model.extracted["facts"][0]["source_id"] = "S2"
-        with patch("agent.fetch_vmall_sources", return_value=[source]):
+        assets = {"sources": [source], "images": []}
+        with patch("agent.fetch_vmall_assets", return_value=assets):
             result = self.run_task(requirements=source["official_url"])
         self.assertEqual(result["status"], "ready", result.get("report"))
         self.assertEqual(result["checks"]["retrieval_mode"], "mixed")
@@ -605,7 +606,8 @@ class AgentRegressionTests(unittest.TestCase):
         source = {"title": PRODUCT + " 官方商城", "text": QUOTE, "kind": "facts",
                   "official_url": "https://www.vmall.com/product/12345.html",
                   "retrieved_at": "2026-10-18T08:00:00+00:00", "origin": "official_vmall"}
-        with patch("agent.fetch_vmall_sources", return_value=[source]):
+        assets = {"sources": [source], "images": []}
+        with patch("agent.fetch_vmall_assets", return_value=assets):
             result = self.run_task(requirements=source["official_url"])
         self.assertEqual(result["status"], "ready", result.get("report"))
         self.assertEqual(result["checks"]["retrieval_mode"], "mixed")

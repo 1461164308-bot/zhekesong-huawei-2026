@@ -76,8 +76,14 @@ def prepare_images(images: list[dict], task: dict) -> list[dict]:
             raw_path = str(image.get("path", ""))
             if not raw_path or raw_path.lower().startswith(("http:", "https:", "data:", "file:")) or raw_path.startswith(("\\\\", "//")):
                 continue
-            if task.get("product") and image.get("model") and normalize(task["product"]) != normalize(image["model"]):
-                continue
+            if task.get("product") and image.get("model"):
+                target = normalize(task["product"])
+                model_name = normalize(image["model"])
+                # Ecosystem combos may include a picture of any single device in the
+                # combination; single-product tasks keep the strict exact match.
+                if target != model_name and not (
+                        str(task.get("product_family") or "") == "ecosystem" and model_name in target):
+                    continue
             path = Path(raw_path)
             if not path.is_file():
                 continue

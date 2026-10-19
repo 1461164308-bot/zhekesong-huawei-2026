@@ -54,6 +54,12 @@ def exact_product(value: str, products: list[str]) -> str | None:
     for product in products:
         if norm == normalize(product) or norm == normalize(product.replace("HUAWEI ", "").replace("华为 ", "")):
             return product
+    # Ecosystem combinations: every named device must match a catalogue model.
+    parts = [p.strip() for p in re.split(r"[+＋、,，/]|组合|套装|生态", str(value)) if p.strip()]
+    if len(parts) > 1:
+        matched = [exact_product(part, products) for part in parts]
+        if all(matched):
+            return " + ".join(matched)
     return None
 
 

@@ -145,6 +145,14 @@ body, body.dark { background:#dbe8fb !important;background-image:linear-gradient
   background:#ffffff !important;color:#16233f !important;opacity:1 !important;
 }
 #zh-inputs .block,#zh-results .block,#zh-inputs .form,#zh-results .form { background:#ffffff !important;border-color:#d3def0 !important; }
+/* Keep the working area in its own stacking context so the settings panel never
+   paints over the hero/landing block, and make the panel fully opaque. */
+#zh-liquid-header,#zh-desktop { position:relative; z-index:1; isolation:isolate; }
+#zh-workspace { position:relative; z-index:3; margin-top:6px; }
+#zh-inputs,#zh-results { position:relative; z-index:2; background:#ffffff !important; isolation:isolate; }
+#zh-inputs .accordion,#zh-inputs .block,#zh-results .accordion,#zh-results .block { position:relative; z-index:auto; }
+#zh-inputs .accordion { margin:0 0 10px 0 !important; border-radius:14px !important; box-shadow:0 2px 10px #1b3a6620 !important; }
+#zh-inputs .accordion > .label-wrap { border-radius:14px !important; padding:10px 14px !important; }
 .gradio-container label > span,.gradio-container label > div > span { color:#23354d !important;opacity:1 !important; }
 #zh-desktop a:focus-visible,.gradio-container button:focus-visible { outline:3px solid #0a59f7 !important;outline-offset:3px; }
 @media(max-width:960px) { .zh-liquid-copy { padding:30px; } .zh-liquid-control { padding:22px; } .zh-liquid-time > span { display:none; } }
