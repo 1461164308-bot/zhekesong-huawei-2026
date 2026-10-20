@@ -453,10 +453,14 @@ demo = build_demo()
 demo.queue(default_concurrency_limit=1, max_size=8, api_open=False)
 
 if __name__ == "__main__":
+    import os
+
     # 部署到魔搭创空间时没有本地知识库目录，快发模式的配图从私有归档 ZIP 解到
     # 系统临时目录；Gradio 需要显式放行该目录才能把图片喂给 Gallery。
     from facts import ARCHIVE_IMAGE_ROOT
 
+    # 创空间要求监听 0.0.0.0:7860；本地仍可用 GRADIO_SERVER_PORT 指定端口。
     demo.launch(theme=THEME, css=CSS + DESKTOP_CSS, js=DESKTOP_JS, max_threads=2, show_error=False,
+                server_name=os.environ.get("GRADIO_SERVER_NAME", "0.0.0.0"),
                 allowed_paths=[str(ARCHIVE_IMAGE_ROOT)],
                 favicon_path=str(Path(__file__).resolve().parent / "assets" / "zh-mark-tile-256.png"))
