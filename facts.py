@@ -9,9 +9,13 @@ files; :func:`main` in ``tools/build_facts.py`` writes the cards.
 """
 from __future__ import annotations
 
+import csv
+import hashlib
 import json
 import re
+import tempfile
 import unicodedata
+import zipfile
 from pathlib import Path
 
 FACTS_DIR = Path(__file__).resolve().parent / "facts"
@@ -481,34 +485,51 @@ def _image_theme(name: str) -> str:
     return ""
 
 
-def _image_rows(folder: Path) -> list[dict]:
-    """Read 图片索引.csv when it exists, so captions and usage notes travel with the file."""
-    index = folder / "图片索引.csv"
-    if not index.is_file():
-        return []
-    import csv
+# 两套知识库的配图清单文件名与列名不同，读的时候统一成同一种行结构。
+INDEX_FILES = ("图片索引.csv", "images/图片清单.csv")
 
+
+def _manifest_row(row: dict) -> dict:
+    """Normalize 图片索引.csv / 图片清单.csv rows to one shape."""
+    return {
+        "name": Path(str(row.get("文件名", "")).strip()).name,
+        "official": str(row.get("官网图片说明") or row.get("说明") or "").strip(),
+        "placement": str(row.get("建议用途", "") or "").strip(),
+        "source_url": str(row.get("来源页面") or row.get("来源URL") or "").strip(),
+        "width": str(row.get("宽度", "") or "").strip(),
+        "height": str(row.get("高度", "") or "").strip(),
+    }
+
+
+def _caption(theme: str, official: str, fallback: str) -> str:
+    """文件名主题只在是中文画面描述时优先，官方英文 slug 不如官网说明好读。"""
+    if theme and re.search(r"[\u4e00-\u9fff]", theme):
+        return theme
+    return official or fallback
+
+
+def _image_rows(folder: Path) -> list[dict]:
+    """Read the image manifest when it exists, so captions and usage notes travel with the file."""
+    index = next((folder / relative for relative in INDEX_FILES if (folder / relative).is_file()), None)
+    if index is None:
+        return []
     rows = []
     with index.open(encoding="utf-8-sig", newline="") as stream:
-        for row in csv.DictReader(stream):
-            name = str(row.get("文件名", "")).strip()
-            if not name:
+        for raw in csv.DictReader(stream):
+            row = _manifest_row(raw)
+            if not row["name"]:
                 continue
-            path = folder / "images" / name
+            path = folder / "images" / row["name"]
             if not path.is_file() or path.stat().st_size > MAX_IMAGE_BYTES:
                 continue
-            official = str(row.get("官网图片说明", "") or "").strip()
-            # 官网说明常常只是型号名（…MateBook 14 2024 OLED屏幕），文件名里的
-            # 画面主题更好认，就优先用它当配图标题。
-            theme = _image_theme(name)
             rows.append({
                 "path": str(path),
-                "title": theme or official or path.stem,
-                "official": official,
-                "placement": str(row.get("建议用途", "")).strip(),
-                "source_url": str(row.get("来源页面", "")).strip(),
-                "width": str(row.get("宽度", "")).strip(),
-                "height": str(row.get("高度", "")).strip(),
+                "title": _caption(_image_theme(row["name"]), row["official"], path.stem),
+                "official": row["official"],
+                "placement": row["placement"],
+                "source_url": row["source_url"],
+                "width": row["width"],
+                "height": row["height"],
             })
     return rows
 
@@ -517,22 +538,114 @@ def images(card: dict) -> list[dict]:
     """同型号官方配图：先按索引取，索引缺失时退回目录里的图片文件。
 
     图片不进事实卡（体积大、有版权，仓库里也提交不了），运行时按卡片里的
-    库/类目/目录名回源目录读；源目录不存在时返回空列表，界面会说明原因。
+    库/类目/目录名回源目录读；部署在魔搭等环境时没有本地知识库目录，改从
+    私有归档 ZIP 里取（见 ``_archive_image_rows``）。两处都取不到时返回空列表。
     """
     folder = source_dir(card)
-    if folder is None:
+    if folder is not None:
+        cached = _IMAGE_CACHE.get(str(folder))
+        if cached is not None:
+            return [dict(item) for item in cached]
+        rows = _image_rows(folder)
+        if not rows:
+            for path in sorted((folder / "images").glob("*")) if (folder / "images").is_dir() else []:
+                if path.suffix.lower() in IMAGE_SUFFIXES and path.is_file() and path.stat().st_size <= MAX_IMAGE_BYTES:
+                    rows.append({"path": str(path), "title": path.stem, "placement": "",
+                                 "source_url": "", "width": "", "height": ""})
+        _IMAGE_CACHE[str(folder)] = rows
+        return [dict(item) for item in rows]
+    return _archive_image_rows(card)
+
+
+# --- 部署环境（魔搭创空间）用：从私有知识库归档 ZIP 里取图 -------------------
+ARCHIVE_IMAGE_ROOT = Path(tempfile.gettempdir()) / "zh-quick-images"
+_ARCHIVE_CACHE: dict[tuple[str, str], list[dict]] = {}
+
+
+def _safe_member(name: str) -> bool:
+    if not name or name.startswith("/") or "\\" in name or ".." in name.split("/"):
+        return False
+    return Path(name).name not in {"", ".", ".."}
+
+
+def _archive_image_rows(card: dict) -> list[dict]:
+    """Read 图片索引.csv + images out of the private knowledge archive.
+
+    Studio 里没有工作区知识库目录，图片只存在于部署者提供的私有归档 ZIP
+    （``IMA_ARCHIVE_URL`` / ``IMA_ARCHIVE_PATH``）。这里按卡片的类目/目录名在
+    归档里定位 ``图片索引.csv``，把被引用的图片解到系统临时目录（Gradio 允许
+    读取临时目录），再交给界面；原图不进入代码仓库。
+    """
+    category = str((card or {}).get("category", "")).strip()
+    folder = str((card or {}).get("folder", "")).strip()
+    if not category or not folder:
         return []
-    cached = _IMAGE_CACHE.get(str(folder))
+    try:
+        from knowledge_store import get_archive_path
+
+        archive = get_archive_path()
+    except Exception:  # 归档未配置或下载失败：界面会说明没有配图
+        return []
+    if not archive:
+        return []
+    path = Path(str(archive))
+    key = (str(path), f"{category}/{folder}")
+    cached = _ARCHIVE_CACHE.get(key)
     if cached is not None:
         return [dict(item) for item in cached]
-    rows = _image_rows(folder)
-    if not rows:
-        for path in sorted((folder / "images").glob("*")) if (folder / "images").is_dir() else []:
-            if path.suffix.lower() in IMAGE_SUFFIXES and path.is_file() and path.stat().st_size <= MAX_IMAGE_BYTES:
-                rows.append({"path": str(path), "title": path.stem, "placement": "",
-                             "source_url": "", "width": "", "height": ""})
-    _IMAGE_CACHE[str(folder)] = rows
+    try:
+        with zipfile.ZipFile(path) as bundle:
+            rows = _archive_rows_from_zip(bundle, category, folder)
+    except (OSError, zipfile.BadZipFile, RuntimeError):
+        return []
+    _ARCHIVE_CACHE[key] = rows
     return [dict(item) for item in rows]
+
+
+def _archive_rows_from_zip(bundle: zipfile.ZipFile, category: str, folder: str) -> list[dict]:
+    """Locate either manifest layout inside the archive and extract its images."""
+    members = [name for name in bundle.namelist() if _safe_member(name)]
+    index, prefix = "", ""
+    for relative in INDEX_FILES:
+        wanted = f"{category}/{folder}/{relative}"
+        found = next((name for name in members if name.endswith(wanted)), "")
+        if not found:
+            continue
+        index = found
+        prefix = found[: -len(relative)]
+        break
+    if not index:
+        return []
+    import io
+
+    text = bundle.read(index).decode("utf-8-sig", "replace")
+    target = ARCHIVE_IMAGE_ROOT / hashlib.sha1(prefix.encode("utf-8")).hexdigest()[:16]
+    rows: list[dict] = []
+    for raw in csv.DictReader(io.StringIO(text)):
+        row = _manifest_row(raw)
+        name = row["name"]
+        if not name or Path(name).suffix.lower() not in IMAGE_SUFFIXES:
+            continue
+        try:
+            content = bundle.read(f"{prefix}images/{name}")
+        except KeyError:
+            continue
+        if not content or len(content) > MAX_IMAGE_BYTES:
+            continue
+        extracted = target / name
+        if not extracted.is_file():
+            target.mkdir(parents=True, exist_ok=True)
+            extracted.write_bytes(content)
+        rows.append({
+            "path": str(extracted),
+            "title": _caption(_image_theme(name), row["official"], extracted.stem),
+            "official": row["official"],
+            "placement": row["placement"],
+            "source_url": row["source_url"],
+            "width": row["width"],
+            "height": row["height"],
+        })
+    return rows
 
 
 def slug(model_folder: str, taken: set[str] | None = None) -> str:

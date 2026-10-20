@@ -446,5 +446,103 @@ class GeneratedCardIntegrationTests(unittest.TestCase):
             self.skipTest("当前事实卡目录里没有 P1 PC 知识库的卡片，跳过")
 
 
+class ImageSourceTest(unittest.TestCase):
+    """配图来源：本地知识库目录，以及部署环境里的私有归档 ZIP。"""
+
+    def setUp(self) -> None:
+        import tempfile
+
+        self.temp = Path(tempfile.mkdtemp(prefix="zh-facts-images-"))
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.temp, ignore_errors=True))
+        self.root = self.temp / "workspace"
+        self.root.mkdir()
+        self.original_root = facts.WORKSPACE_ROOT
+        facts.WORKSPACE_ROOT = self.root
+        facts._IMAGE_CACHE.clear()
+        if hasattr(facts, "_ARCHIVE_CACHE"):
+            facts._ARCHIVE_CACHE.clear()
+        self.addCleanup(self._restore)
+
+    def _restore(self) -> None:
+        facts.WORKSPACE_ROOT = self.original_root
+        facts._IMAGE_CACHE.clear()
+        if hasattr(facts, "_ARCHIVE_CACHE"):
+            facts._ARCHIVE_CACHE.clear()
+
+    def _model_folder(self, manifest: str, relative: str) -> Path:
+        folder = self.root / "测试库" / "P1-产品参数库" / "04-笔记本" / "测试机型"
+        images = folder / "images"
+        images.mkdir(parents=True, exist_ok=True)
+        (images / "a.png").write_bytes(b"\x89PNG\r\n\x1a\n0")
+        (images / "b.jpg").write_bytes(b"\xff\xd8\xff\xe0")
+        (folder / manifest).write_text(relative, encoding="utf-8")
+        return folder
+
+    def _card(self) -> dict:
+        return {"model": "测试机型", "library": "测试库", "category": "04-笔记本", "folder": "测试机型"}
+
+    def test_reads_pc_library_manifest(self) -> None:
+        self._model_folder(
+            "图片索引.csv",
+            "文件名,官网图片说明,建议用途,来源页面,宽度,高度\n"
+            "a.png,多彩配色外观,产品介绍配图,https://example.com/spec,800,600\n",
+        )
+        rows = facts.images(self._card())
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(Path(rows[0]["path"]).is_file())
+        self.assertEqual(rows[0]["placement"], "产品介绍配图")
+        self.assertEqual(rows[0]["source_url"], "https://example.com/spec")
+
+    def test_reads_official_library_manifest(self) -> None:
+        self._model_folder(
+            "images/图片清单.csv",
+            '"文件名","说明","来源URL"\n'
+            '"a.png","HUAWEI 测试机型 心动理由之屏幕","https://example.com/official"\n'
+            '"b.jpg","HUAWEI 测试机型 超级终端",""\n',
+        )
+        rows = facts.images(self._card())
+        self.assertEqual(len(rows), 2, "官方产品库用 images/图片清单.csv，也要读得到")
+        self.assertEqual(rows[0]["official"], "HUAWEI 测试机型 心动理由之屏幕")
+        self.assertEqual(rows[0]["source_url"], "https://example.com/official")
+
+    def test_extracts_images_from_private_archive(self) -> None:
+        """魔搭 Studio 没有本地知识库目录，只能从归档 ZIP 解图到临时目录。"""
+        import zipfile
+
+        facts.WORKSPACE_ROOT = self.temp / "empty-workspace"  # 模拟部署环境：没有本地知识库
+        archive = self.temp / "knowledge.zip"
+        prefix = "P1-产品参数库/04-笔记本/测试机型/"
+        with zipfile.ZipFile(archive, "w") as bundle:
+            bundle.writestr(prefix + "images/图片清单.csv",
+                            '"文件名","说明","来源URL"\n'
+                            '"a.png","HUAWEI 测试机型 心动理由之屏幕","https://example.com/spec"\n')
+            bundle.writestr(prefix + "images/a.png", b"\x89PNG\r\n\x1a\n0")
+        import knowledge_store
+
+        original = knowledge_store.get_archive_path
+        knowledge_store.get_archive_path = lambda: str(archive)
+        self.addCleanup(lambda: setattr(knowledge_store, "get_archive_path", original))
+
+        rows = facts.images(self._card())
+        self.assertEqual(len(rows), 1, "归档里有的配图要被解出来")
+        self.assertTrue(Path(rows[0]["path"]).is_file())
+        self.assertTrue(Path(rows[0]["path"]).is_relative_to(facts.ARCHIVE_IMAGE_ROOT),
+                        "解压目录必须在系统临时目录（Gradio 才允许读取）")
+
+    def test_archive_without_manifest_returns_nothing(self) -> None:
+        import zipfile
+
+        facts.WORKSPACE_ROOT = self.temp / "empty-workspace"
+        archive = self.temp / "empty.zip"
+        with zipfile.ZipFile(archive, "w") as bundle:
+            bundle.writestr("P1-产品参数库/04-笔记本/别的机型/产品事实.md", "# x")
+        import knowledge_store
+
+        original = knowledge_store.get_archive_path
+        knowledge_store.get_archive_path = lambda: str(archive)
+        self.addCleanup(lambda: setattr(knowledge_store, "get_archive_path", original))
+        self.assertEqual(facts.images(self._card()), [], "没有清单就不要瞎猜图片")
+
+
 if __name__ == "__main__":
     unittest.main()

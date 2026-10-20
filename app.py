@@ -453,5 +453,10 @@ demo = build_demo()
 demo.queue(default_concurrency_limit=1, max_size=8, api_open=False)
 
 if __name__ == "__main__":
+    # 部署到魔搭创空间时没有本地知识库目录，快发模式的配图从私有归档 ZIP 解到
+    # 系统临时目录；Gradio 需要显式放行该目录才能把图片喂给 Gallery。
+    from facts import ARCHIVE_IMAGE_ROOT
+
     demo.launch(theme=THEME, css=CSS + DESKTOP_CSS, js=DESKTOP_JS, max_threads=2, show_error=False,
+                allowed_paths=[str(ARCHIVE_IMAGE_ROOT)],
                 favicon_path=str(Path(__file__).resolve().parent / "assets" / "zh-mark-tile-256.png"))
