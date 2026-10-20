@@ -72,6 +72,8 @@ console.log('clock runtime OK');
         for token in ('pointermove', 'pointerout', 'requestAnimationFrame', '--zh-mx', 'cancelAnimationFrame',
                       '--zh-rx', '--zh-ry', 'IntersectionObserver', 'data-zh-reveal', 'zh-reveal'):
             self.assertIn(token, DESKTOP_JS, token)
+        for token in ("classList.remove('zh-reveal'", "setTimeout", "disposed"):
+            self.assertIn(token, DESKTOP_JS, token)
         for token in ('rotateX(var(--zh-rx', 'rotateY(var(--zh-ry', 'data-zh-reveal=\"on\"', 'translate:0 12px'):
             self.assertIn(token, DESKTOP_CSS, token)
         self.assertIn('@media(prefers-reduced-motion:reduce)', DESKTOP_CSS)

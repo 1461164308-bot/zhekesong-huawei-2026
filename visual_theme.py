@@ -310,8 +310,16 @@ DESKTOP_JS = r"""
     revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        entry.target.classList.add('zh-in');
-        revealObserver.unobserve(entry.target);
+        const node = entry.target;
+        node.classList.add('zh-in');
+        revealObserver.unobserve(node);
+        // 入场结束后必须把 zh-reveal / zh-in 清掉：残留的 translate 会变成
+        // fixed 定位子元素的包含块，导致下拉选项跑到屏幕外（型号选择点不开）。
+        setTimeout(() => {
+          if (disposed) return;
+          node.classList.remove('zh-reveal', 'zh-in');
+          node.style.transitionDelay = '';
+        }, 1000);
       });
     }, {threshold: 0.06, rootMargin: '0px 0px -6% 0px'});
     document.documentElement.setAttribute('data-zh-reveal', 'on');
