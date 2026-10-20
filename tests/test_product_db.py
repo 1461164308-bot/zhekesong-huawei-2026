@@ -27,6 +27,50 @@ SPEC_HTML = """
       <p>5000 mAh（典型值）</p>
     </div></div>
   </li>
+  <li class="large-accordion__item">
+    <button><span class="large-accordion__title large-accordion-title">尺寸与重量</span></button>
+    <div class="large-accordion__content"><div class="large-accordion__inner large-accordion__inner--short">
+      <div class="large-accordion__wrap">
+        <div class="large-accordion-subtitle size-height-name">长度</div>
+        <p>160.9 mm</p>
+      </div>
+      <div class="large-accordion__wrap">
+        <div class="large-accordion-subtitle">重量</div>
+        <p>约 203 g（含电池）</p>
+        <p class="large-accordion-subtext">*实际重量依配置与制造工艺有所差异。</p>
+      </div>
+    </div></div>
+  </li>
+  <li class="large-accordion__item">
+    <button><span class="large-accordion__title large-accordion-title">理论工作时间</span></button>
+    <div class="large-accordion__content"><div class="large-accordion__inner">
+      <p>常规使用 3 天；AOD 使用 2 天</p>
+      <p class="large-accordion-subtext">*实际续航依使用习惯有所差异。</p>
+    </div></div>
+  </li>
+  <li class="large-accordion__item">
+    <button><span class="large-accordion__title large-accordion-title">重量</span></button>
+    <div class="large-accordion__content"><div class="large-accordion-columns multi-watchGt">
+      <div class="multi-watchGt-item">
+        <div class="multi-watchGt-title">HUAWEI 合成机型 42 mm</div>
+        <div class="multi-watchGt-cnt"><div class="multi-watchGt-list part0">
+          <div class="multi-watchGt-subtitle"></div>
+          <div class="multi-watchGt-text"><p>约 38 g（不含表带）</p></div>
+          <p class="multi-watchGt-subtext"></p>
+        </div></div>
+      </div>
+      <div class="multi-watchGt-item">
+        <div class="multi-watchGt-title">HUAWEI 合成机型 46 mm</div>
+        <div class="multi-watchGt-cnt"><div class="multi-watchGt-list part0">
+          <div class="multi-watchGt-subtitle">表壳材质</div>
+          <div class="multi-watchGt-text"><p>约 60 g（不含表带）</p></div>
+        </div></div>
+      </div>
+      <div class="large-accordion__inner">
+        <p class="large-accordion-text">*实际重量依配置与制造工艺有所差异。</p>
+      </div>
+    </div></div>
+  </li>
 </ul>
 """
 
@@ -49,7 +93,30 @@ class SpecParserTests(unittest.TestCase):
         self.sections = builder.parse_specs(SPEC_HTML)
 
     def test_sections_keep_official_order_and_titles(self):
-        self.assertEqual([name for name, _ in self.sections], ["屏幕", "电池"])
+        self.assertEqual([name for name, _ in self.sections],
+                         ["屏幕", "电池", "尺寸与重量", "理论工作时间", "重量"])
+
+    def test_scalar_section_keeps_its_value_without_a_field_label(self):
+        section, fields = self.sections[3]
+        self.assertEqual(section, "理论工作时间")
+        self.assertEqual(fields, [("", ["常规使用 3 天；AOD 使用 2 天"],
+                                  ["*实际续航依使用习惯有所差异。"])])
+
+    def test_per_version_layout_keeps_every_version_and_its_caveat(self):
+        section, fields = self.sections[4]
+        self.assertEqual(section, "重量")
+        self.assertEqual(fields[0], ("", ["HUAWEI 合成机型 42 mm："], []))
+        self.assertEqual(fields[1], ("", ["约 38 g（不含表带）"], []))
+        self.assertEqual(fields[2], ("", ["HUAWEI 合成机型 46 mm："], []))
+        self.assertEqual(fields[3][0], "表壳材质")
+        self.assertEqual(fields[3][1], ["约 60 g（不含表带）"])
+        self.assertIn("实际重量", fields[3][2][0])
+
+    def test_wrapped_fields_are_not_dropped(self):
+        sizes = dict((field, (values, notes)) for field, values, notes in self.sections[2][1])
+        self.assertEqual(sizes["长度"][0], ["160.9 mm"])
+        self.assertEqual(sizes["重量"][0], ["约 203 g（含电池）"])
+        self.assertIn("实际重量", sizes["重量"][1][0])
 
     def test_fields_values_and_qualifiers_are_separated(self):
         screen = dict((field, (values, notes)) for field, values, notes in self.sections[0][1])

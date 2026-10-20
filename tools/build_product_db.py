@@ -150,8 +150,61 @@ def discover(s: requests.Session, categories: list[str]) -> dict[str, list[str]]
     return found
 
 
+def _variant_fields(item: Node) -> list[tuple[str, list[str], list[str]]]:
+    """Read the ``multi-watchGt`` layout: one block per version (42 mm, 46 mm …).
+
+    Each version becomes a ``型号名：`` marker line, which the fact-card parser reads
+    as the variant that the following labelled values belong to.
+    """
+    variants = [node for node in item.find_all(klass="multi-watchGt-item")]
+    fields: list[tuple[str, list[str], list[str]]] = []
+    for node in variants:
+        title = next(node.find_all(klass="multi-watchGt-title"), None)
+        variant = title.text() if title else ""
+        if variant:
+            fields.append(("", [variant + "："], []))
+        groups = list(node.find_all(klass="multi-watchGt-list")) or [node]
+        for group in groups:
+            subtitle = next(group.find_all(klass="multi-watchGt-subtitle"), None)
+            name = subtitle.text() if subtitle else ""
+            values, notes = [], []
+            for paragraph in group.find_all(tag="p"):
+                text = paragraph.text()
+                if not text:
+                    continue
+                decorated = any("subtext" in klass for klass in paragraph.classes())
+                (notes if decorated else values).append(text)
+            if values or notes:
+                fields.append((name, values, notes))
+    return fields
+
+
+def _is_caveat(paragraph: Node, text: str) -> bool:
+    """Footnotes must travel with the value they qualify, so they are never values."""
+    return (text.startswith("*")
+            or any("subtext" in klass for klass in paragraph.classes()))
+
+
+def _merge_trailing_notes(fields: list[tuple[str, list[str], list[str]]]) -> list[tuple[str, list[str], list[str]]]:
+    """Attach column-level footnotes to the last field that actually carries values."""
+    merged: list[tuple[str, list[str], list[str]]] = []
+    for name, values, notes in fields:
+        if not values and notes and merged and merged[-1][1]:
+            previous = merged[-1]
+            merged[-1] = (previous[0], previous[1], previous[2] + notes)
+        else:
+            merged.append((name, values, notes))
+    return merged
+
+
 def parse_specs(html: str) -> list[tuple[str, list[tuple[str, list[str], list[str]]]]]:
-    """Parse the specification accordion into sections of (field, values, qualifiers)."""
+    """Parse the specification accordion into sections of (field, values, qualifiers).
+
+    Three layouts are in use and all three are read here, otherwise whole sections
+    silently become empty: values directly under ``large-accordion__inner``, values
+    wrapped per field in ``large-accordion__wrap`` (sizes and weights), and the
+    ``multi-watchGt`` per-version blocks used by wearables.
+    """
     tree = Tree()
     tree.feed(html)
     sections = []
@@ -160,22 +213,21 @@ def parse_specs(html: str) -> list[tuple[str, list[tuple[str, list[str], list[st
             continue
         title_node = next(item.find_all(klass="large-accordion__title"), None)
         section = title_node.text() if title_node else ""
-        fields = []
+        fields = _variant_fields(item)
         for inner in item.find_all(klass="large-accordion__inner"):
-            subtitle = next(inner.find_all(klass="large-accordion-subtitle"), None)
-            name = subtitle.text() if subtitle else ""
-            values, notes = [], []
-            for child in inner.children:
-                if not isinstance(child, Node):
-                    continue
-                if child.tag != "p":
-                    continue
-                text = child.text()
-                if not text:
-                    continue
-                (notes if "large-accordion-subtext" in child.classes() else values).append(text)
-            if name or values:
-                fields.append((name, values, notes))
+            units = list(inner.find_all(klass="large-accordion__wrap")) or [inner]
+            for unit in units:
+                subtitle = next(unit.find_all(klass="large-accordion-subtitle"), None)
+                name = subtitle.text() if subtitle else ""
+                values, notes = [], []
+                for paragraph in unit.find_all(tag="p"):
+                    text = paragraph.text()
+                    if not text:
+                        continue
+                    (notes if _is_caveat(paragraph, text) else values).append(text)
+                if values or notes:
+                    fields.append((name, values, notes))
+        fields = _merge_trailing_notes(fields)
         if fields:
             sections.append((section, fields))
     return sections
@@ -228,7 +280,7 @@ def render_facts(name: str, product: dict, sections, page_url: str, spec_url: st
             if field:
                 lines += [field, ""]
             lines += values + [""]
-            lines += [f"*{note}" for note in notes] + ([""] if notes else [])
+            lines += [f"*{note.lstrip('*').strip()}" for note in notes] + ([""] if notes else [])
     lines += ["## 来源", "", f"- 产品页：{page_url}", f"- 规格页：{spec_url}", ""]
     return "\n".join(lines)
 
@@ -273,6 +325,11 @@ def write_readme(out: Path, fetched: str, report: dict) -> None:
         "- 规格中带 `*` 的限定说明必须与数值一起使用，例如“峰值亮度”需要注明测试条件。",
         "- 图片仅用于本项目内的营销稿配图，版权归华为；对外发布前按平台规则使用。",
         "- 本库为抓取快照，不代表实时在售状态；型号与配置以官网和门店实际销售版本为准。", "",
+        "## 范围说明", "",
+        "- 当前只保留手机、穿戴、电脑三类；其余已抓取的品类移到了同级目录 `_暂缓-非重点/`，"
+        "不进入 P1，也不参与知识库快照。需要时把它们移回 `P1-产品参数库/` 即可。",
+        "- 规格页存在三种排版（普通字段、`large-accordion__wrap` 包裹的尺寸重量、穿戴的按款式分块），"
+        "抓取脚本都可解析；官方页面没有列出的字段（如部分手机的芯片型号）不会补写。", "",
         "## 与华为商城（vmall）的关系", "",
         "vmall 商品页由前端渲染（服务端不返回正文），直接抓取只能拿到空壳页面，"
         "且抓取行为需要尊重站点限制，因此本库不使用 vmall 页面作为事实来源。"
@@ -282,7 +339,8 @@ def write_readme(out: Path, fetched: str, report: dict) -> None:
 
 
 def build(categories: list[str], out: Path, *, limit: int | None, images_per_model: int,
-          delay: float, resume: bool, workers: int = 6, pages: int = 4) -> dict:
+          delay: float, resume: bool, workers: int = 6, pages: int = 4,
+          refresh: bool = False) -> dict:
     s = session()
     discovered = discover(s, categories)
     fetched = time.strftime("%Y-%m-%d")
@@ -323,8 +381,8 @@ def build(categories: list[str], out: Path, *, limit: int | None, images_per_mod
         folder_path = out / "P1-产品参数库" / folder / safe_name(name)
         record = {"category": label, "name": name, "url": url, "spec_url": spec_url,
                   "sections": len(sections), "images": [], "dir": str(folder_path)}
-        if not (resume and (folder_path / "产品事实.md").is_file()
-                and (folder_path / "产品事实.md").stat().st_size > 200):
+        if refresh or not (resume and (folder_path / "产品事实.md").is_file()
+                           and (folder_path / "产品事实.md").stat().st_size > 200):
             folder_path.mkdir(parents=True, exist_ok=True)
             (folder_path / "产品事实.md").write_text(
                 render_facts(name, product, sections, url, spec_url, fetched), encoding="utf-8")
@@ -350,6 +408,8 @@ def build(categories: list[str], out: Path, *, limit: int | None, images_per_mod
     # Images are the slow part (CDN can stall); fetch them concurrently and politely.
     def fetch(job):
         image_dir, target, url, _ = job
+        if target.is_file() and target.stat().st_size >= 8000:
+            return job, True  # already downloaded by an earlier run
         image_dir.mkdir(parents=True, exist_ok=True)
         return job, download_image(s, url, target)
 
@@ -388,6 +448,8 @@ def main(argv=None) -> int:
     parser.add_argument("--resume", action="store_true", help="skip models that already have facts")
     parser.add_argument("--workers", type=int, default=6, help="parallel image downloads")
     parser.add_argument("--pages", type=int, default=4, help="parallel page crawlers")
+    parser.add_argument("--refresh", action="store_true",
+                        help="rewrite facts even when they exist (parser changes); images are reused")
     args = parser.parse_args(argv)
     categories = [c.strip() for c in args.categories.split(",") if c.strip() in CATEGORIES]
     unknown = [c.strip() for c in args.categories.split(",") if c.strip() and c.strip() not in CATEGORIES]
@@ -395,7 +457,8 @@ def main(argv=None) -> int:
         print("unknown categories:", unknown, file=sys.stderr)
         return 2
     report = build(categories, Path(args.out), limit=args.limit, images_per_model=args.images,
-                   delay=args.delay, resume=args.resume, workers=args.workers, pages=args.pages)
+                   delay=args.delay, resume=args.resume, workers=args.workers, pages=args.pages,
+                   refresh=args.refresh)
     total = sum(report["categories"].values())
     print(json.dumps({"models": total, "by_category": report["categories"],
                       "failures": len(report["failures"])}, ensure_ascii=False, indent=2))
