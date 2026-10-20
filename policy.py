@@ -57,11 +57,84 @@ def exact_product(value: str, products: list[str]) -> str | None:
     return None
 
 
+def resolve_product(value: str, products: list[str]) -> dict:
+    """把手输型号解析成目录里的准确型号：先精确，再模糊；拿不准就返回候选。
+
+    只在目录内匹配，不会凭「轻薄本」这类泛称造型号；返回结构和
+    ``product_match.resolve`` 一致（``matched`` / ``ambiguous`` / ``unknown``）。
+
+    事实卡里的机型名（如「HUAWEI MateBook D 14 2024」）和知识库目录里的
+    文件夹写法（如「MateBook D 14」）可能不同：先用事实卡名做别名参与匹配，
+    再把命中的别名折算回目录里的原始写法，保证后续检索用的一定是目录标题。
+    """
+    from product_match import normalize as match_normalize
+    from product_match import resolve
+
+    exact = exact_product(value, products)
+    if exact:
+        return {"status": "matched", "product": exact, "score": 1.0,
+                "candidates": [{"product": exact, "score": 1.0}],
+                "message": f"已匹配到「{exact}」。"}
+
+    aliases = _fact_aliases()
+    result = resolve(value, products, extra=aliases)
+
+    def canonical(name: str) -> str | None:
+        norm = match_normalize(name)
+        for product in products:
+            if match_normalize(product) == norm:
+                return product
+        folder = aliases.get(name) or ""
+        if folder:
+            folder_norm = match_normalize(folder)
+            for product in products:
+                if match_normalize(product) == folder_norm:
+                    return product
+        return None
+
+    if result["status"] == "matched":
+        target = canonical(result["product"])
+        if target:
+            return {**result, "product": target,
+                    "message": f"已匹配到「{target}」。"}
+        return {"status": "ambiguous", "product": None, "score": result["score"],
+                "candidates": result.get("candidates", []),
+                "message": f"「{value}」对应的事实卡存在，但当前知识库目录里没有这个型号的资料。"}
+
+    rows, seen = [], set()
+    for item in result.get("candidates", []):
+        target = canonical(item["product"]) or item["product"]
+        if target in seen:
+            continue
+        seen.add(target)
+        rows.append({"product": target, "score": item["score"]})
+    if len(rows) == 1:
+        return {"status": "matched", "product": rows[0]["product"], "score": rows[0]["score"],
+                "candidates": rows, "message": f"已匹配到「{rows[0]['product']}」。"}
+    return {**result, "candidates": rows}
+
+
+def _fact_aliases() -> dict[str, str]:
+    """事实卡机型名 → 知识库目录名；读不到事实卡时返回空表，不影响匹配。"""
+    try:
+        import facts
+    except Exception:
+        return {}
+    aliases: dict[str, str] = {}
+    for model in facts.catalogue():
+        card = facts.load_card(model) or {}
+        folder = str(card.get("folder") or "").strip()
+        if folder:
+            aliases[str(model)] = folder
+    return aliases
+
+
 def validate_inputs(product: str, audience: str, scenario: str, platform: str, products: list[str]) -> tuple[str | None, list[str]]:
     questions = []
-    canonical = exact_product(product, products)
+    match = resolve_product(product, products)
+    canonical = match["product"] if match["status"] == "matched" else None
     if not canonical:
-        questions.append("请在产品下拉框选择准确型号，并确认年份、Windows/鸿蒙与款式；不能只填‘轻薄本’或模糊系列。")
+        questions.append(match["message"])
     if not audience or len(audience.strip()) < 2:
         questions.append("这篇内容面向谁？例如大学新生、经常出差的职场用户或采购负责人。")
     if scenario not in SCENE_RULES:

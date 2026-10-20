@@ -35,6 +35,11 @@ class ModeEntryTests(unittest.TestCase):
                 for panel in ('zh-mode-home','zh-quick-workspace','zh-simple-workspace','zh-workspace'):
                     self.assertEqual(result[self.component(panel)]['visible'], panel == visible_id)
 
+    def test_free_text_product_matching_hint_is_present(self):
+        """两种模式都提供手输型号的自动匹配提示。"""
+        self.assertIsNotNone(self.component('zh-product-hint'), '专业模式缺少型号匹配提示')
+        self.assertIsNotNone(self.component('zh-simple-product-hint'), '极简模式缺少型号匹配提示')
+
     def test_quick_mode_offers_visit_presets(self):
         """没灵感时可以直接点场景，不必自己想一句见闻。"""
         presets = [component for component in self.app.blocks.values()

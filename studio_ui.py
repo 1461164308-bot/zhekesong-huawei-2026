@@ -95,6 +95,10 @@ def build_studio(examples, fallback_products, desktop_html):
                 with gr.Column(visible=False, elem_id="zh-page-brief") as page_brief:
                     gr.Markdown("### 01 / 确认营销需求")
                     product = gr.Dropdown(fallback_products, label="产品型号", allow_custom_value=True, interactive=True)
+                    product_hint = gr.Markdown(
+                        "可以直接手输型号（如「matebook d14 2024」），离开输入框会自动匹配目录里的准确型号；"
+                        "匹配不到会列出候选，不会替你猜。",
+                        elem_id="zh-product-hint")
                     audience = gr.Textbox(label="目标人群", placeholder="例如：经常处理文档和表格的职场人", lines=2)
                     with gr.Row():
                         scenario = gr.Dropdown(list(agent.SCENARIOS), value="开学季", label="营销场景")
@@ -459,6 +463,20 @@ def build_studio(examples, fallback_products, desktop_html):
             except Exception as exc:
                 return {style_notice: str(exc) if isinstance(exc, StyleError) else "暂未删除，请重试。"}
 
+        def match_product(text, ima=None):
+            """手输型号自动匹配目录：命中就回填准确型号，命中不了给出候选提示。"""
+            from policy import resolve_product
+
+            try:
+                with agent.ima_session(ima or None):
+                    products = agent.get_products()
+            except Exception:
+                products = []
+            result = resolve_product(text, products or fallback_products)
+            if result["status"] == "matched":
+                return gr.update(value=result["product"]), "✓ " + result["message"]
+            return gr.update(), result["message"]
+
         event = dict(outputs=shared_outputs, api_visibility="private", concurrency_limit=1,
                      concurrency_id="zhiheng_creation", trigger_mode="once")
         # Field edits relock stages/downloads and clear stale results. Every component an
@@ -515,4 +533,6 @@ def build_studio(examples, fallback_products, desktop_html):
                       concurrency_limit=1, concurrency_id="zhiheng_creation")
         app.load(refresh_connection, inputs=[product, simple['product']], outputs=[connection, product, simple['product']], api_visibility="private",
                  concurrency_limit=1, concurrency_id="zhiheng_creation")
+        product.blur(match_product, inputs=[product, ima_state], outputs=[product, product_hint],
+                     api_visibility="private", queue=False)
     return app

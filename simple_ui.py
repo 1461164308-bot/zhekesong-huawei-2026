@@ -23,6 +23,10 @@ def build_simple(api_state, fallback_products, ima_state=None):
             product = gr.Dropdown(fallback_products, value=None, allow_custom_value=True,
                                   label='产品类型', info='选择具体型号，或先输入你想了解的产品类型。',
                                   elem_id='zh-simple-product')
+            product_hint = gr.Markdown(
+                '可以直接手输型号（如「matebook d14 2024」），离开输入框会自动匹配目录里的准确型号；'
+                '匹配不到会列出候选，不会替你猜。',
+                elem_id='zh-simple-product-hint')
             audience = gr.Textbox(label='用户类型', placeholder='例如：大学新生、办公人群', max_length=300,
                                  elem_id='zh-simple-audience')
             platform = gr.Dropdown(list(PLATFORM_RULES), value='小红书', label='发布平台',
@@ -168,6 +172,20 @@ def build_simple(api_state, fallback_products, ima_state=None):
         text = '会话模型配置已清空，生成前请重新配置。'
         return {**clear_result(), api_state:{}, api_base:'', api_key:'', api_model:'', api_notice:text, notice:text}
 
+    def simple_match_product(text, ima=None):
+        """手输型号自动匹配目录：命中就回填准确型号，命中不了给出候选提示。"""
+        import agent
+        from policy import resolve_product
+        try:
+            with source(ima):
+                products = agent.get_products()
+        except Exception:
+            products = []
+        result = resolve_product(text, products or fallback_products)
+        if result['status'] == 'matched':
+            return gr.update(value=result['product']), '✓ ' + result['message']
+        return gr.update(), result['message']
+
     event = dict(outputs=outputs, api_visibility='private', concurrency_limit=1,
                  concurrency_id='zhiheng_creation', trigger_mode='once')
     start.click(simple_start, inputs=[product, audience, platform, api_state, message, *ima_input], **event)
@@ -177,6 +195,8 @@ def build_simple(api_state, fallback_products, ima_state=None):
     confirm.click(simple_confirm, inputs=[delivery, state, product, audience, platform, message], **event)
     for component in (product, audience, platform):
         component.input(simple_invalidate_basics, inputs=[], **{**event, 'trigger_mode':'always_last'})
+    product.blur(simple_match_product, inputs=[product, *ima_input], outputs=[product, product_hint],
+                 api_visibility='private', queue=False)
     message.input(simple_invalidate_draft, inputs=[], **{**event, 'trigger_mode':'always_last'})
     api_outputs = [api_state, api_base, api_key, api_model, api_notice, *outputs]
     api_events = [api_save.click(simple_save_api, inputs=[api_base,api_key,api_model],

@@ -4,7 +4,7 @@ from __future__ import annotations
 import unittest
 
 from policy import (PLATFORM_RULES, SCENE_RULES, draft_units, evidence_facts,
-                    exact_product, normalized_quote, strategy_for,
+                    exact_product, normalized_quote, resolve_product, strategy_for,
                     text_violations, validate_inputs)
 
 
@@ -38,6 +38,53 @@ class InputPolicyTests(unittest.TestCase):
         self.assertIsNone(exact_product("HUAWEI MateBook D 14", products))
         self.assertIsNone(exact_product("HUAWEI MateBook 14（Windows版）", products))
         self.assertIsNone(exact_product("HUAWEI MateBook 14", products))
+
+    def test_free_text_model_resolves_only_when_unambiguous(self):
+        products = [YEAR_PRODUCT, "HUAWEI MateBook D 14 2024 13 代酷睿版", HARMONY_PRODUCT]
+        matched = resolve_product("matebook d 14 2024", products)
+        self.assertEqual(matched["status"], "matched")
+        self.assertEqual(matched["product"], YEAR_PRODUCT)
+        # 带品牌前缀/全角括号的中文写法也能落到目录原写法
+        self.assertEqual(resolve_product("华为 MateBook 14（鸿蒙版）", products)["product"], HARMONY_PRODUCT)
+        # 目录里有两个 D14 时，缺年份的简写必须当成歧义，不能替用户挑
+        ambiguous = resolve_product("matebook d 14", products)
+        self.assertEqual(ambiguous["status"], "ambiguous")
+        self.assertGreaterEqual(len(ambiguous["candidates"]), 2)
+        self.assertIsNone(ambiguous["product"])
+        # 年份决定资料归属：即便目录里只有一个 D14，缺年份也要先问
+        unique = resolve_product("matebook d 14", [YEAR_PRODUCT])
+        self.assertEqual(unique["status"], "ambiguous")
+        self.assertIsNone(unique["product"])
+        # 泛称/不存在型号 → unknown，并给出补全提示
+        unknown = resolve_product("轻薄本", products)
+        self.assertEqual(unknown["status"], "unknown")
+        self.assertIsNone(unknown["product"])
+        self.assertIn("型号", unknown["message"])
+
+    def test_fact_card_name_maps_back_to_catalog_title(self):
+        """事实卡叫「HUAWEI MateBook D 14 2024」，知识库目录叫「MateBook D 14」：
+        用事实卡名手输也能命中，并折算回目录标题供检索使用。"""
+        import facts
+
+        model = next((name for name in facts.catalogue()
+                      if "D 14 2024" in name and "13" not in name), None)
+        if not model:
+            self.skipTest("事实卡里没有 D 14 2024，跳过别名折算检查")
+        folder = facts.load_card(model)["folder"]
+        products = [folder, "HUAWEI MateBook 14"]
+        for query in (model, model.lower(), "matebook d 14 2024"):
+            with self.subTest(query=query):
+                result = resolve_product(query, products)
+                self.assertEqual(result["status"], "matched", result)
+                self.assertEqual(result["product"], folder)
+                self.assertIn(folder, result["message"])
+
+    def test_free_text_match_keeps_os_and_year_guards(self):
+        products = [YEAR_PRODUCT, HARMONY_PRODUCT]
+        cross_os = resolve_product("HUAWEI MateBook 14（Windows版）", products)
+        self.assertNotEqual(cross_os["status"], "matched")
+        future = resolve_product("HUAWEI MateBook D 14 2025", products)
+        self.assertEqual(future["status"], "unknown")
 
     def test_missing_fields_produce_specific_questions(self):
         canonical, questions = validate_inputs("", "", "", "", [PRODUCT])

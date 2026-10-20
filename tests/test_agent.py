@@ -422,6 +422,30 @@ class AgentRegressionTests(unittest.TestCase):
         self.assertEqual(self.ima.retrieve_calls, [])
         self.assertEqual(self.phases(), [])
 
+    def test_loose_typed_model_is_matched_before_retrieval(self):
+        """手输「matebook d 14 2024」应自动补全成目录里的准确型号再检索。"""
+        self.ima.result["product"] = YEAR_PRODUCT
+        self.ima.result["images"][0]["model"] = YEAR_PRODUCT
+        result = self.run_task(product="matebook d 14 2024")
+        self.assertEqual(result["status"], "ready", result.get("report"))
+        self.assertEqual(self.ima.retrieve_calls[0][0], YEAR_PRODUCT)
+
+    def test_yearless_model_asks_even_when_catalog_has_one(self):
+        """年份决定资料归属：缺年份时即使目录里只有一款也要先问，不替用户补。"""
+        self.ima.result["product"] = YEAR_PRODUCT
+        self.ima.result["images"][0]["model"] = YEAR_PRODUCT
+        result = self.run_task(product="matebook d 14")
+        self.assert_not_published(result, "needs_clarification")
+        self.assertEqual(self.ima.retrieve_calls, [])
+        self.assertIn("2024", result["report"])
+
+    def test_yearless_model_with_two_candidates_stops_before_retrieval(self):
+        self.ima.products = [YEAR_PRODUCT, "HUAWEI MateBook D 14 2024 13 代酷睿版", PRODUCT]
+        result = self.run_task(product="matebook d 14")
+        self.assert_not_published(result, "needs_clarification")
+        self.assertEqual(self.ima.retrieve_calls, [])
+        self.assertIn("可能对应多个型号", result["report"])
+
     def test_retrieved_product_mismatch_stops_before_model(self):
         self.ima.result["product"] = OTHER
         self.assert_not_published(self.run_task())

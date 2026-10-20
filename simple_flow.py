@@ -8,7 +8,7 @@ import agent
 from llm_client import LLMClient, resolve_api_config, server_api_configured
 from public_payload import sanitize_public
 from style_cards import get_preset
-from policy import PLATFORM_RULES, SCENE_RULES, exact_product
+from policy import PLATFORM_RULES, SCENE_RULES, resolve_product
 
 GOALS = ('种草了解', '选购决策', '到店体验', '企业咨询')
 MAX_MESSAGE_CHARS = 400
@@ -193,7 +193,8 @@ def generate_now(current, product, audience, platform, pending_message='', api_c
         products = agent.get_products()
     except Exception:
         raise SimpleModeError('暂时无法读取产品目录，请检查资料连接后重试。') from None
-    canonical = exact_product(basic['product'], products)
+    match = resolve_product(basic['product'], products)
+    canonical = match['product'] if match['status'] == 'matched' else None
     intents = _product_intents(users, products)
     matches = [name for name, selected in intents.items() if selected]
     if canonical and (intents.get(canonical) is False or any(name != canonical for name in matches)):
@@ -207,7 +208,7 @@ def generate_now(current, product, audience, platform, pending_message='', api_c
     if not canonical:
         canonical = matches[0] if len(matches) == 1 else None
     if not canonical:
-        raise SimpleModeError('请明确完整准确型号（含年份、系统与款式），或从产品目录选择；不会从泛称自动挑选型号。')
+        raise SimpleModeError(match['message'] + ' 不会从泛称自动挑选型号。')
     scenes = _explicit_mentions(users, SCENE_RULES)
     goals = _explicit_mentions(users, GOALS)
     scene = scenes[-1] if scenes else None
