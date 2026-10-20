@@ -1,0 +1,754 @@
+{
+ "version": 1,
+ "model": "HUAWEI MateBook X Pro 酷睿 Ultra 微绒典藏版",
+ "folder": "MateBook X系列",
+ "category": "02-MateBook-Windows",
+ "library": "任德耀新建华为PC知识库/华为PC全板块深度知识库_v7",
+ "captured": "2026-10-17",
+ "urls": [
+  "https://consumer.huawei.com/cn/laptops/matebook-x-pro-ultra-premium-edition/",
+  "https://consumer.huawei.com/cn/laptops/matebook-x-pro-ultra-premium-edition/specs/"
+ ],
+ "positioning": "",
+ "selling_titles": [],
+ "source_note": "来源：华为官网公开产品页与规格页。抓取日期：2026-10-17。配置可能因销售版本而异，生成内容时必须保留限定条件并以实际销售版本为准。",
+ "fields": [
+  {
+   "section": "操作系统",
+   "name": "",
+   "values": [
+    {
+     "text": "Windows 11 家庭版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "Linux 版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "Windows 11 家庭版\nLinux 版"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "长度",
+   "values": [
+    {
+     "text": "13.5 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "长度\n13.5 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "宽度",
+   "values": [
+    {
+     "text": "310 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "宽度\n310 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "厚度",
+   "values": [
+    {
+     "text": "222 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "厚度\n222 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "重量",
+   "values": [
+    {
+     "text": "约 980 g",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "重量\n约 980 g\n*实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "屏幕",
+   "name": "尺寸",
+   "values": [
+    {
+     "text": "14.2 英寸",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "屏幕采用圆角设计，按照标准矩形测量时，屏幕的对角线长度是 14.2 英寸（实际可视区域略小）。"
+     ]
+    }
+   ],
+   "conditions": [
+    "屏幕采用圆角设计，按照标准矩形测量时，屏幕的对角线长度是 14.2 英寸（实际可视区域略小）。"
+   ],
+   "quote": "尺寸\n14.2 英寸\n*屏幕采用圆角设计，按照标准矩形测量时，屏幕的对角线长度是 14.2 英寸（实际可视区域略小）。"
+  },
+  {
+   "section": "屏幕",
+   "name": "类型",
+   "values": [
+    {
+     "text": "OLED",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "类型\nOLED"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏占比",
+   "values": [
+    {
+     "text": "93%",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏占比\n93%"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏幕比例",
+   "values": [
+    {
+     "text": "3:2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏幕比例\n3:2"
+  },
+  {
+   "section": "屏幕",
+   "name": "分辨率",
+   "values": [
+    {
+     "text": "3120 × 2080，264 ppi",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "分辨率\n3120 × 2080，264 ppi"
+  },
+  {
+   "section": "屏幕",
+   "name": "刷新率",
+   "values": [
+    {
+     "text": "120 Hz",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": [
+      "刷新率出厂设置为最高 60 Hz，支持切换为最高 120 Hz。在不同应用界面下刷新率可能存在差异，请以实际体验为准。"
+     ]
+    },
+    {
+     "text": "120 Hz",
+     "variant": "",
+     "label": "Linux 版",
+     "inline": "",
+     "conditions": [
+      "刷新率出厂设置为最高 60 Hz，支持切换为最高 120 Hz。在不同应用界面下刷新率可能存在差异，请以实际体验为准。"
+     ]
+    }
+   ],
+   "conditions": [
+    "刷新率出厂设置为最高 60 Hz，支持切换为最高 120 Hz。在不同应用界面下刷新率可能存在差异，请以实际体验为准。"
+   ],
+   "quote": "刷新率\nWindows 版：120 Hz*\nLinux 版：120 Hz\n*刷新率出厂设置为最高 60 Hz，支持切换为最高 120 Hz。在不同应用界面下刷新率可能存在差异，请以实际体验为准。"
+  },
+  {
+   "section": "屏幕",
+   "name": "亮度",
+   "values": [
+    {
+     "text": "1000 尼特",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "典型值，数据来源于华为实验室。HDR 功能仅限 Windows 版本产品支持，需打开 HDR 模式，并配合 HDR 内容源显⁠示，局部峰值亮度可达 1000 尼特⁠，请以实际使用情况为准。"
+     ]
+    }
+   ],
+   "conditions": [
+    "典型值，数据来源于华为实验室。HDR 功能仅限 Windows 版本产品支持，需打开 HDR 模式，并配合 HDR 内容源显⁠示，局部峰值亮度可达 1000 尼特⁠，请以实际使用情况为准。"
+   ],
+   "quote": "亮度\n1000 尼特\n*典型值，数据来源于华为实验室。HDR 功能仅限 Windows 版本产品支持，需打开 HDR 模式，并配合 HDR 内容源显⁠示，局部峰值亮度可达 1000 尼特⁠，请以实际使用情况为准。"
+  },
+  {
+   "section": "屏幕",
+   "name": "色域",
+   "values": [
+    {
+     "text": "Adobe RGB / P3 / sRGB",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "P3",
+     "variant": "",
+     "label": "Linux 版",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色域\nWindows 版：Adobe RGB / P3 / sRGB\nLinux 版：P3"
+  },
+  {
+   "section": "屏幕",
+   "name": "色准",
+   "values": [
+    {
+     "text": "平均 △E < 1，支持多屏同色显示",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "色准\n平均 △E < 1，支持多屏同色显示\n*功能仅限 Windows 版本产品支持。"
+  },
+  {
+   "section": "屏幕",
+   "name": "色深",
+   "values": [
+    {
+     "text": "10.7 亿色",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": [
+      "实现 10.7 亿色彩显示效果需打开 HDR 模式，并配合支持 10 bit 的内容源显⁠示⁠。",
+      "实现 10.7 亿色彩显示效果需配合 10 bit 的内容源显⁠示⁠。"
+     ]
+    },
+    {
+     "text": "10.7 亿色",
+     "variant": "",
+     "label": "Linux 版",
+     "inline": "",
+     "conditions": [
+      "实现 10.7 亿色彩显示效果需打开 HDR 模式，并配合支持 10 bit 的内容源显⁠示⁠。",
+      "实现 10.7 亿色彩显示效果需配合 10 bit 的内容源显⁠示⁠。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实现 10.7 亿色彩显示效果需打开 HDR 模式，并配合支持 10 bit 的内容源显⁠示⁠。",
+    "实现 10.7 亿色彩显示效果需配合 10 bit 的内容源显⁠示⁠。"
+   ],
+   "quote": "色深\nWindows 版：10.7 亿色*\nLinux 版：10.7 亿色**\n*实现 10.7 亿色彩显示效果需打开 HDR 模式，并配合支持 10 bit 的内容源显⁠示⁠。\n**实现 10.7 亿色彩显示效果需配合 10 bit 的内容源显⁠示⁠。"
+  },
+  {
+   "section": "屏幕",
+   "name": "对比度",
+   "values": [
+    {
+     "text": "1000000:1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "对比度\n1000000:1"
+  },
+  {
+   "section": "屏幕",
+   "name": "可视角度",
+   "values": [
+    {
+     "text": "178°",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "可视角度\n178°"
+  },
+  {
+   "section": "屏幕",
+   "name": "触摸屏",
+   "values": [
+    {
+     "text": "支持十点触控",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "十点触控仅限 Windows 版本产品支持，Linux 版仅支持五点触控。",
+      "屏幕亮度、对比度、可视角度等数据为典型值。",
+      "多屏同色，根据应用软件、屏幕设置、使用习惯、环境等因素不同，可能略有差异，请以实际体验为准。购买时最新支持的设备机型请见官网或咨询华为客服（950800）。"
+     ]
+    }
+   ],
+   "conditions": [
+    "十点触控仅限 Windows 版本产品支持，Linux 版仅支持五点触控。",
+    "屏幕亮度、对比度、可视角度等数据为典型值。",
+    "多屏同色，根据应用软件、屏幕设置、使用习惯、环境等因素不同，可能略有差异，请以实际体验为准。购买时最新支持的设备机型请见官网或咨询华为客服（950800）。"
+   ],
+   "quote": "触摸屏\n支持十点触控\n*十点触控仅限 Windows 版本产品支持，Linux 版仅支持五点触控。\n*屏幕亮度、对比度、可视角度等数据为典型值。\n**多屏同色，根据应用软件、屏幕设置、使用习惯、环境等因素不同，可能略有差异，请以实际体验为准。购买时最新支持的设备机型请见官网或咨询华为客服（950800）。"
+  },
+  {
+   "section": "处理器",
+   "name": "",
+   "values": [
+    {
+     "text": "第 1 代英特尔®酷睿™ Ultra 9 185H 处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "仅限 Windows 版本产品搭载。"
+     ]
+    },
+    {
+     "text": "第 1 代英特尔®酷睿™ Ultra 7 155H 处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "仅限 Windows 版本产品搭载。"
+     ]
+    }
+   ],
+   "conditions": [
+    "仅限 Windows 版本产品搭载。"
+   ],
+   "quote": "第 1 代英特尔®酷睿™ Ultra 9 185H 处理器\n*仅限 Windows 版本产品搭载。\n第 1 代英特尔®酷睿™ Ultra 7 155H 处理器"
+  },
+  {
+   "section": "存储",
+   "name": "",
+   "values": [
+    {
+     "text": "2 TB / 1 TB NVMe PCIe SSD",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "硬盘格式化之后的实际容量可能较小。"
+     ]
+    }
+   ],
+   "conditions": [
+    "硬盘格式化之后的实际容量可能较小。"
+   ],
+   "quote": "2 TB / 1 TB NVMe PCIe SSD\n*硬盘格式化之后的实际容量可能较小。"
+  },
+  {
+   "section": "内存",
+   "name": "",
+   "values": [
+    {
+     "text": "32 GB / 16 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "32 GB / 16 GB"
+  },
+  {
+   "section": "无线连接",
+   "name": "WLAN",
+   "values": [
+    {
+     "text": "IEEE 802.11a/b/g/n/ac/ax, 160 MHz",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2.4 G Hz 和 5 GHz 双频",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2 × 2 MIMO",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "支持 WPA/WPA2/WPA3",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "WLAN\nIEEE 802.11a/b/g/n/ac/ax, 160 MHz\n2.4 G Hz 和 5 GHz 双频\n2 × 2 MIMO\n支持 WPA/WPA2/WPA3"
+  },
+  {
+   "section": "无线连接",
+   "name": "蓝牙",
+   "values": [
+    {
+     "text": "蓝牙 5.3",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "蓝牙 4.2",
+     "variant": "",
+     "label": "Linux 版",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "蓝牙\nWindows 版：蓝牙 5.3\nLinux 版：蓝牙 4.2"
+  },
+  {
+   "section": "电池",
+   "name": "容量",
+   "values": [
+    {
+     "text": "70 Wh",
+     "variant": "",
+     "label": "",
+     "inline": "额定容量",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "容量\n70 Wh（额定容量）"
+  },
+  {
+   "section": "接口",
+   "name": "",
+   "values": [
+    {
+     "text": "Windows 版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "Thunderbolt™ 4 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "左侧",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "USB-C × 1",
+     "variant": "",
+     "label": "",
+     "inline": "右侧",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "摄像头隐私开关 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "右侧",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "Linux 版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "USB-C × 2",
+     "variant": "",
+     "label": "",
+     "inline": "左侧",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "USB-C × 1",
+     "variant": "",
+     "label": "",
+     "inline": "右侧",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "摄像头隐私开关 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "右侧",
+     "conditions": [
+      "摄像头隐私开关仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "摄像头隐私开关仅限 Windows 版本产品支持。"
+   ],
+   "quote": "Windows 版\nThunderbolt™ 4 × 2（左侧）\nUSB-C × 1（右侧）\n摄像头隐私开关 × 1（右侧）\nLinux 版\nUSB-C × 2（左侧）\n*摄像头隐私开关仅限 Windows 版本产品支持。"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "内置“华为分享”感应区",
+   "values": [
+    {
+     "text": "1.5 mm 键程",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "华为分享功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "华为分享功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "内置“华为分享”感应区\n*华为分享功能仅限 Windows 版本产品支持。\n1.5 mm 键程"
+  },
+  {
+   "section": "摄像头",
+   "name": "",
+   "values": [
+    {
+     "text": "1080P 高清前置摄像头",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "摄像头功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "摄像头功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "1080P 高清前置摄像头\n*摄像头功能仅限 Windows 版本产品支持。"
+  },
+  {
+   "section": "音频",
+   "name": "",
+   "values": [
+    {
+     "text": "扬声器 × 6",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "麦克风 × 4",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "扬声器 × 6\n麦克风 × 4"
+  },
+  {
+   "section": "特色应用",
+   "name": "AI 概要",
+   "values": [
+    {
+     "text": "仅部分电脑管家 14.0.3.200 及以上版本的华为笔记本支持该功能，为限时尝鲜功能。使用该功能需电脑保持联网状态，实际效果受内容、网络环境等因素影响或有差异，后期可能涉及付费使用，请以实际体验为准。如在选购或使用时对功能体验、使用限制、支持机型等有疑问，请咨询华为客服（950800）。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "AI 概要\n仅部分电脑管家 14.0.3.200 及以上版本的华为笔记本支持该功能，为限时尝鲜功能。使用该功能需电脑保持联网状态，实际效果受内容、网络环境等因素影响或有差异，后期可能涉及付费使用，请以实际体验为准。如在选购或使用时对功能体验、使用限制、支持机型等有疑问，请咨询华为客服（950800）。"
+  },
+  {
+   "section": "特色应用",
+   "name": "AI 慧眼",
+   "values": [
+    {
+     "text": "仅部分电脑管家 14.0.3.200 及以上版本的华为笔记本支持此功能。此功能默认关闭，需在控制中心中打开功能。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "AI 慧眼\n仅部分电脑管家 14.0.3.200 及以上版本的华为笔记本支持此功能。此功能默认关闭，需在控制中心中打开功能。"
+  },
+  {
+   "section": "特色应用",
+   "name": "超级终端",
+   "values": [
+    {
+     "text": "仅部分华为手机、平板、显示器、智慧屏、耳机等终端设备，与部分电脑管家 13.0.2.300及以上版本的华为笔记本互联支持该功能。如在选购或使用时对功能体验、使用限制、支持机型等有疑问，请咨询华为客服（950800）。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "超级终端\n仅部分华为手机、平板、显示器、智慧屏、耳机等终端设备，与部分电脑管家 13.0.2.300及以上版本的华为笔记本互联支持该功能。如在选购或使用时对功能体验、使用限制、支持机型等有疑问，请咨询华为客服（950800）。"
+  },
+  {
+   "section": "特色应用",
+   "name": "超级中转站",
+   "values": [
+    {
+     "text": "仅电脑管家 13.0.3.390 及以上版本的部分华为笔记本、HarmonyOS 3.0.0.160 及以上版本的部分华为手机与 HarmonyOS 3.1.0.122 及以上版本的部分华为平板支持该功能。使用该功能时，手机、平板、PC 需登录同一华为账号，并打开蓝牙和 Wi-Fi 开关。仅部分应用和文件支持该功能。如在选购或使用时对功能体验、使用限制、支持机型等有疑问，请咨询华为客服（950800）。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "以上功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "超级中转站\n仅电脑管家 13.0.3.390 及以上版本的部分华为笔记本、HarmonyOS 3.0.0.160 及以上版本的部分华为手机与 HarmonyOS 3.1.0.122 及以上版本的部分华为平板支持该功能。使用该功能时，手机、平板、PC 需登录同一华为账号，并打开蓝牙和 Wi-Fi 开关。仅部分应用和文件支持该功能。如在选购或使用时对功能体验、使用限制、支持机型等有疑问，请咨询华为客服（950800）。\n*以上功能仅限 Windows 版本产品支持。"
+  },
+  {
+   "section": "包装清单",
+   "name": "",
+   "values": [
+    {
+     "text": "HUAWEI MateBook X Pro",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "超级快充电源适配器",
+     "variant": "",
+     "label": "",
+     "inline": "Max 140 W",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "HUAWEI MateBook X Pro\n超级快充电源适配器（Max 140 W）"
+  },
+  {
+   "section": "包装清单",
+   "name": "TypeC 数字耳机",
+   "values": [
+    {
+     "text": "HUAWEI USB-C OTG 转接线",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "TypeC 数字耳机\nHUAWEI USB-C OTG 转接线"
+  },
+  {
+   "section": "包装清单",
+   "name": "快速指南",
+   "values": [
+    {
+     "text": "即将离开consumer.huawei.com",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "快速指南\n即将离开consumer.huawei.com\n您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。"
+  }
+ ]
+}

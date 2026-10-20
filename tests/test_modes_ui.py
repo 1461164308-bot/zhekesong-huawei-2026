@@ -20,8 +20,10 @@ class ModeEntryTests(unittest.TestCase):
         return result
 
     def test_mode_switch_only_changes_visibility_not_user_inputs_or_models(self):
-        targets = {'enter_simple': 'zh-simple-workspace', 'enter_professional': 'zh-workspace', 'return_to_modes': 'zh-mode-home'}
-        allowed = {'zh-mode-home','zh-simple-workspace','zh-workspace','zh-guide', 'zh-mode-bar','zh-mode-label','zh-connection-details'}
+        targets = {'enter_quick': 'zh-quick-workspace', 'enter_simple': 'zh-simple-workspace',
+                   'enter_professional': 'zh-workspace', 'return_to_modes': 'zh-mode-home'}
+        allowed = {'zh-mode-home','zh-quick-workspace','zh-simple-workspace','zh-workspace','zh-guide',
+                   'zh-mode-bar','zh-mode-label','zh-connection-details'}
         with patch('agent.run_task', side_effect=AssertionError('mode switching must not generate')):
             for callback, visible_id in targets.items():
                 fn = self.callback(callback)
@@ -30,8 +32,20 @@ class ModeEntryTests(unittest.TestCase):
                 result = fn.fn()
                 for component in result:
                     self.assertIn(component.elem_id, allowed)
-                for panel in ('zh-mode-home','zh-simple-workspace','zh-workspace'):
+                for panel in ('zh-mode-home','zh-quick-workspace','zh-simple-workspace','zh-workspace'):
                     self.assertEqual(result[self.component(panel)]['visible'], panel == visible_id)
+
+    def test_quick_mode_offers_visit_presets(self):
+        """没灵感时可以直接点场景，不必自己想一句见闻。"""
+        presets = [component for component in self.app.blocks.values()
+                   if str(getattr(component, 'elem_id', '') or '').startswith('zh-quick-preset-')]
+        self.assertGreaterEqual(len(presets), 8, '快发模式应给出门店场景预选卡')
+        self.assertIsNotNone(self.component('zh-quick-visit'), '见闻输入框应在')
+        self.assertIsNotNone(self.component('zh-quick-presets-hint'), '预选卡上方要有一句引导')
+
+    def test_quick_mode_has_gallery_and_bundle(self):
+        for name in ('zh-quick-gallery-0', 'zh-quick-images-0', 'zh-quick-pack', 'zh-quick-bundle'):
+            self.assertIsNotNone(self.component(name), f'快发模式缺少 {name}')
 
     def test_simple_mode_has_three_basic_fields_and_generation_is_always_available(self):
         for name in ('zh-simple-product', 'zh-simple-audience', 'zh-simple-platform', 'zh-simple-chat'):

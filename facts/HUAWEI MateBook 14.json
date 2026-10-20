@@ -1,0 +1,592 @@
+{
+ "version": 1,
+ "model": "HUAWEI MateBook 14（鸿蒙版）",
+ "folder": "HUAWEI MateBook 14",
+ "category": "01-鸿蒙电脑",
+ "library": "任德耀新建华为PC知识库/华为PC全板块深度知识库_v7",
+ "captured": "2026-10-17",
+ "urls": [
+  "https://consumer.huawei.com/cn/harmonyos-computer/matebook-14-harmonyos-version/",
+  "https://consumer.huawei.com/cn/harmonyos-computer/matebook-14-harmonyos-version/specs/"
+ ],
+ "positioning": "",
+ "selling_titles": [],
+ "source_note": "来源：华为官网公开产品页与规格页。抓取日期：2026-10-17。配置可能因销售版本而异，生成内容时必须保留限定条件并以实际销售版本为准。",
+ "fields": [
+  {
+   "section": "操作系统",
+   "name": "",
+   "values": [
+    {
+     "text": "HarmonyOS 6",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "HarmonyOS 6"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "长度",
+   "values": [
+    {
+     "text": "312.6 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "长度\n312.6 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "宽度",
+   "values": [
+    {
+     "text": "226.8 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "宽度\n226.8 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "厚度",
+   "values": [
+    {
+     "text": "14.5 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "厚度\n14.5 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "重量",
+   "values": [
+    {
+     "text": "约 1.33 kg",
+     "variant": "",
+     "label": "",
+     "inline": "圆键盘含电池",
+     "conditions": [
+      "实际机身重量根据配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "约 1.32 kg",
+     "variant": "",
+     "label": "",
+     "inline": "方键盘含电池",
+     "conditions": [
+      "实际机身重量根据配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际机身重量根据配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "重量\n约 1.33 kg（圆键盘含电池）\n约 1.32 kg（方键盘含电池）\n*实际机身重量根据配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "屏幕",
+   "name": "尺寸",
+   "values": [
+    {
+     "text": "14.2 英寸",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "显示屏采用圆角设计，按照标准矩形测量时，屏幕的对角线长度是 14.2 英寸（实际可视区域略小）。"
+     ]
+    }
+   ],
+   "conditions": [
+    "显示屏采用圆角设计，按照标准矩形测量时，屏幕的对角线长度是 14.2 英寸（实际可视区域略小）。"
+   ],
+   "quote": "尺寸\n14.2 英寸\n*显示屏采用圆角设计，按照标准矩形测量时，屏幕的对角线长度是 14.2 英寸（实际可视区域略小）。"
+  },
+  {
+   "section": "屏幕",
+   "name": "类型",
+   "values": [
+    {
+     "text": "OLED",
+     "variant": "",
+     "label": "",
+     "inline": "抗反射屏",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "类型\nOLED（抗反射屏）"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏占比",
+   "values": [
+    {
+     "text": "91%",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏占比\n91%"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏幕比例",
+   "values": [
+    {
+     "text": "3:2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏幕比例\n3:2"
+  },
+  {
+   "section": "屏幕",
+   "name": "分辨率",
+   "values": [
+    {
+     "text": "2880 × 1920，243 PPI",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "分辨率\n2880 × 1920，243 PPI"
+  },
+  {
+   "section": "屏幕",
+   "name": "刷新率",
+   "values": [
+    {
+     "text": "60 Hz / 120 Hz",
+     "variant": "",
+     "label": "静态刷新率",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "智能动态调节",
+     "variant": "",
+     "label": "动态刷新率",
+     "inline": "默认",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "刷新率\n静态刷新率：60 Hz / 120 Hz\n动态刷新率：智能动态调节（默认）"
+  },
+  {
+   "section": "屏幕",
+   "name": "亮度",
+   "values": [
+    {
+     "text": "450 nits",
+     "variant": "标准版",
+     "label": "典型亮度",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "500 nits",
+     "variant": "标准版",
+     "label": "峰值亮度",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "500 nits",
+     "variant": "柔光版",
+     "label": "典型亮度",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "600 nits",
+     "variant": "柔光版",
+     "label": "峰值亮度",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "亮度\n标准版：\n典型亮度：450 nits\n峰值亮度：500 nits\n柔光版：\n典型亮度：500 nits\n峰值亮度：600 nits"
+  },
+  {
+   "section": "屏幕",
+   "name": "色域",
+   "values": [
+    {
+     "text": "100% sRGB（典型值）、P3 广色域",
+     "variant": "",
+     "label": "",
+     "inline": "典型值",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色域\n100% sRGB（典型值）、P3 广色域（典型值）"
+  },
+  {
+   "section": "屏幕",
+   "name": "色准",
+   "values": [
+    {
+     "text": "平均 DeltaE < 1，支持多屏同色显示",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "多屏同色，根据应用软件、屏幕设置、使用习惯、环境等因素不同，可能略有差异，请以实际体验为准。购买时最新支持的设备机型请见官网或咨询华为商用客户服务专线（950803）。"
+     ]
+    }
+   ],
+   "conditions": [
+    "多屏同色，根据应用软件、屏幕设置、使用习惯、环境等因素不同，可能略有差异，请以实际体验为准。购买时最新支持的设备机型请见官网或咨询华为商用客户服务专线（950803）。"
+   ],
+   "quote": "色准\n平均 DeltaE < 1，支持多屏同色显示\n*多屏同色，根据应用软件、屏幕设置、使用习惯、环境等因素不同，可能略有差异，请以实际体验为准。购买时最新支持的设备机型请见官网或咨询华为商用客户服务专线（950803）。"
+  },
+  {
+   "section": "屏幕",
+   "name": "对比度",
+   "values": [
+    {
+     "text": "1000000:1",
+     "variant": "",
+     "label": "",
+     "inline": "典型值",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "对比度\n1000000:1（典型值）"
+  },
+  {
+   "section": "屏幕",
+   "name": "可视角度",
+   "values": [
+    {
+     "text": "178°",
+     "variant": "",
+     "label": "",
+     "inline": "典型值",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "可视角度\n178°（典型值）"
+  },
+  {
+   "section": "屏幕",
+   "name": "触摸屏",
+   "values": [
+    {
+     "text": "支持 10 点触控",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "触摸屏\n支持 10 点触控"
+  },
+  {
+   "section": "处理器",
+   "name": "CPU",
+   "values": [
+    {
+     "text": "麒麟 X90",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "CPU\n麒麟 X90"
+  },
+  {
+   "section": "存储",
+   "name": "",
+   "values": [
+    {
+     "text": "512 GB / 1 TB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "512 GB / 1 TB"
+  },
+  {
+   "section": "内存",
+   "name": "",
+   "values": [
+    {
+     "text": "24 GB / 32 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "24 GB / 32 GB"
+  },
+  {
+   "section": "无线连接",
+   "name": "WLAN",
+   "values": [
+    {
+     "text": "Wi-Fi 7，IEEE 802.11a/b/g/n/ac/ax/be，160 MHz",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2.4 GHz 和 5 GHz 双频",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "支持 WPA、WPA2、WPA3",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "WLAN\nWi-Fi 7，IEEE 802.11a/b/g/n/ac/ax/be，160 MHz\n2.4 GHz 和 5 GHz 双频\n支持 WPA、WPA2、WPA3"
+  },
+  {
+   "section": "无线连接",
+   "name": "星闪",
+   "values": [
+    {
+     "text": "星闪 E1.0",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "星闪\n支持，星闪 E1.0"
+  },
+  {
+   "section": "无线连接",
+   "name": "蓝牙",
+   "values": [
+    {
+     "text": "蓝牙 6.0",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "蓝牙\n蓝牙 6.0"
+  },
+  {
+   "section": "电池",
+   "name": "容量",
+   "values": [
+    {
+     "text": "70 Wh",
+     "variant": "",
+     "label": "",
+     "inline": "额定容量",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "容量\n70 Wh（额定容量）"
+  },
+  {
+   "section": "接口",
+   "name": "",
+   "values": [
+    {
+     "text": "左侧：HDMI2.1 TMDS × 1；USB-C × 1；USB -A × 1；3.5 mm 耳机和麦克风二合一接口",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "左侧 USB-C × 1，支持充电、支持数据（USB3.2 Gen1）和对外供电（开机状态最大 10 W：5V2A，关机状态最大 66 W：20V3.3A），支持 DisplayPort1.2（最大分辨率 4K@60 Hz）；",
+      "左侧第 2 个、右侧第 2 个，USB 3.2 Gen1 × 2，支持充电、支持数据（USB3.2 Gen1）和支持对外供电 10 W（5V2A）"
+     ]
+    },
+    {
+     "text": "USB-A × 1",
+     "variant": "",
+     "label": "右侧",
+     "inline": "",
+     "conditions": [
+      "左侧 USB-C × 1，支持充电、支持数据（USB3.2 Gen1）和对外供电（开机状态最大 10 W：5V2A，关机状态最大 66 W：20V3.3A），支持 DisplayPort1.2（最大分辨率 4K@60 Hz）；",
+      "左侧第 2 个、右侧第 2 个，USB 3.2 Gen1 × 2，支持充电、支持数据（USB3.2 Gen1）和支持对外供电 10 W（5V2A）"
+     ]
+    }
+   ],
+   "conditions": [
+    "左侧 USB-C × 1，支持充电、支持数据（USB3.2 Gen1）和对外供电（开机状态最大 10 W：5V2A，关机状态最大 66 W：20V3.3A），支持 DisplayPort1.2（最大分辨率 4K@60 Hz）；",
+    "左侧第 2 个、右侧第 2 个，USB 3.2 Gen1 × 2，支持充电、支持数据（USB3.2 Gen1）和支持对外供电 10 W（5V2A）"
+   ],
+   "quote": "左侧：HDMI2.1 TMDS × 1；USB-C × 1*；USB -A × 1**；3.5 mm 耳机和麦克风二合一接口\n右侧：USB-A × 1；\n*左侧 USB-C × 1，支持充电、支持数据（USB3.2 Gen1）和对外供电（开机状态最大 10 W：5V2A，关机状态最大 66 W：20V3.3A），支持 DisplayPort1.2（最大分辨率 4K@60 Hz）；\n**左侧第 2 个、右侧第 2 个，USB 3.2 Gen1 × 2，支持充电、支持数据（USB3.2 Gen1）和支持对外供电 10 W（5V2A）"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "全尺寸背光键盘",
+   "values": [
+    {
+     "text": "触控板支持 5 点触控",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "全尺寸背光键盘\n触控板支持 5 点触控"
+  },
+  {
+   "section": "摄像头",
+   "name": "",
+   "values": [
+    {
+     "text": "1080P 高清摄像头",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "不同模式的照片和视频像素可能有差异，请以实际为准。"
+     ]
+    }
+   ],
+   "conditions": [
+    "不同模式的照片和视频像素可能有差异，请以实际为准。"
+   ],
+   "quote": "1080P 高清摄像头\n*不同模式的照片和视频像素可能有差异，请以实际为准。"
+  },
+  {
+   "section": "音频",
+   "name": "扬声器",
+   "values": [
+    {
+     "text": "扬声器 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "扬声器\n扬声器 × 2"
+  },
+  {
+   "section": "音频",
+   "name": "麦克风",
+   "values": [
+    {
+     "text": "麦克风 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "麦克风\n麦克风 × 2"
+  },
+  {
+   "section": "包装清单",
+   "name": "",
+   "values": [
+    {
+     "text": "PC × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "USB-C 电源适配器（适配器和充电线一体式连接）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "快速指南 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "贴纸 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "抛光布 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "仅柔光屏支持",
+     "conditions": []
+    },
+    {
+     "text": "即将离开consumer.huawei.com",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "PC × 1\nUSB-C 电源适配器（适配器和充电线一体式连接）× 1\n快速指南 × 1\n贴纸 × 1\n抛光布 × 1（仅柔光屏支持）\n即将离开consumer.huawei.com\n您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。"
+  }
+ ]
+}

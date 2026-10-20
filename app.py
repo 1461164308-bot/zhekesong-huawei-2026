@@ -453,4 +453,5 @@ demo = build_demo()
 demo.queue(default_concurrency_limit=1, max_size=8, api_open=False)
 
 if __name__ == "__main__":
-    demo.launch(theme=THEME, css=CSS + DESKTOP_CSS, js=DESKTOP_JS, max_threads=2, show_error=False)
+    demo.launch(theme=THEME, css=CSS + DESKTOP_CSS, js=DESKTOP_JS, max_threads=2, show_error=False,
+                favicon_path=str(Path(__file__).resolve().parent / "assets" / "zh-mark-tile-256.png"))

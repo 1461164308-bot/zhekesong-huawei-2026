@@ -24,12 +24,17 @@ def build_studio(examples, fallback_products, desktop_html):
         favourites = gr.BrowserState({}, storage_key="zhiheng-style-cards-v1",
                                      secret=os.environ.get("STYLE_STORAGE_SECRET", "zhiheng-browser-style-cards-v1"))
         gr.HTML(desktop_html, elem_id="zh-liquid-header")
+        quick_store = gr.BrowserState({}, storage_key="zhiheng-store-profile-v1",
+                                      secret=os.environ.get("STYLE_STORAGE_SECRET", "zhiheng-browser-style-cards-v1"))
         with gr.Column(elem_id="zh-mode-home") as mode_home:
-            gr.Markdown("## 选择你的创作方式\n同一套事实核验，两种创作节奏。鼠标悬停或键盘聚焦卡片，查看模式介绍。")
+            gr.Markdown("## 选择你的创作方式\n同一套事实核验，三种创作节奏。鼠标悬停或键盘聚焦卡片，查看模式介绍。")
             with gr.Row(elem_id="zh-mode-cards"):
+                with gr.Column(elem_classes="zh-mode-card", elem_id="zh-mode-card-quick"):
+                    gr.HTML('<div class="zh-mode-icon">⚡</div><h3>快发模式</h3><p class="zh-mode-tagline">选型号，说一句店里的事。</p><p class="zh-mode-description">不调用模型：选一个型号、写一句真实见闻，几秒拿到小红书、朋友圈、公众号三版成稿。每个数字都能点开看官方原文与限定条件。</p>')
+                    choose_quick_button = gr.Button("进入快发模式", variant="primary", elem_id="zh-choose-quick")
                 with gr.Column(elem_classes="zh-mode-card", elem_id="zh-mode-card-simple"):
                     gr.HTML('<div class="zh-mode-icon">✦</div><h3>极简模式</h3><p class="zh-mode-tagline">三项输入，对话补充。</p><p class="zh-mode-description">填写产品类型、用户类型和发布平台，让 AI 逐步询问细节。无需答完全部问题，随时按当前信息生成。</p>')
-                    choose_simple_button = gr.Button("进入极简模式", variant="primary", elem_id="zh-choose-simple")
+                    choose_simple_button = gr.Button("进入极简模式", elem_id="zh-choose-simple")
                 with gr.Column(elem_classes="zh-mode-card", elem_id="zh-mode-card-professional"):
                     gr.HTML('<div class="zh-mode-icon">◈</div><h3>专业模式</h3><p class="zh-mode-tagline">逐步确认，精细掌控。</p><p class="zh-mode-description">沿用完整分步工作台，分别编辑需求、风格卡和创作思路；审阅图文终稿后确认下载。</p>')
                     choose_professional_button = gr.Button("进入专业模式", elem_id="zh-choose-professional")
@@ -54,6 +59,9 @@ def build_studio(examples, fallback_products, desktop_html):
                     ima_save = gr.Button("连接并应用 ima", size="sm", variant="primary", elem_id="zh-ima-save")
                     ima_reset = gr.Button("恢复默认资料来源", size="sm", elem_id="zh-ima-reset")
                 ima_notice = gr.Markdown("当前：使用默认资料来源。", elem_id="zh-ima-notice")
+        with gr.Column(visible=False, elem_id="zh-quick-workspace") as quick_workspace:
+            from quick_ui import build_quick
+            quick = build_quick(quick_store)
         with gr.Column(visible=False, elem_id="zh-simple-workspace") as simple_workspace:
             from simple_ui import build_simple
             simple = build_simple(api_state, fallback_products, ima_state)
@@ -168,14 +176,25 @@ def build_studio(examples, fallback_products, desktop_html):
             dependency.then(fn=None, inputs=[], outputs=[], queue=False, api_visibility="private",
                             js="() => { requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({top:0, behavior:'instant'}))); }")
 
+        mode_labels = {
+            'quick': '**快发模式** · 选型号 + 一句见闻，秒出三平台',
+            'simple': '**极简模式** · 三项输入，对话补充',
+            'professional': '**专业模式** · 需求、风格与思路逐步确认',
+        }
+
         def choose_mode(mode):
             return {mode_home: gr.update(visible=mode == 'home'),
+                    quick_workspace: gr.update(visible=mode == 'quick'),
                     simple_workspace: gr.update(visible=mode == 'simple'),
                     professional_workspace: gr.update(visible=mode == 'professional'),
                     mode_bar: gr.update(visible=mode != 'home'),
-                    mode_label: '**极简模式** · 三项输入，对话补充，随时生成。' if mode == 'simple' else '**专业模式** · 需求、风格与思路逐步确认。',
+                    mode_label: mode_labels.get(mode, ''),
                     guide: gr.update(visible=mode == 'professional'),
-                    connection_details: gr.update(visible=mode != 'home')}
+                    # 快发模式不读 ima、不配模型，连接设置对它没有意义。
+                    connection_details: gr.update(visible=mode in {'simple', 'professional'})}
+
+        def enter_quick():
+            return choose_mode('quick')
 
         def enter_simple():
             return choose_mode('simple')
@@ -186,8 +205,9 @@ def build_studio(examples, fallback_products, desktop_html):
         def return_to_modes():
             return choose_mode('home')
 
-        mode_outputs = [mode_home, simple_workspace, professional_workspace, mode_bar, mode_label, guide, connection_details]
-        for button, callback in [(choose_simple_button, enter_simple), (choose_professional_button, enter_professional),
+        mode_outputs = [mode_home, quick_workspace, simple_workspace, professional_workspace, mode_bar, mode_label, guide, connection_details]
+        for button, callback in [(choose_quick_button, enter_quick), (choose_simple_button, enter_simple),
+                                 (choose_professional_button, enter_professional),
                                  (switch_mode_button, return_to_modes)]:
             scroll_after(button.click(callback, inputs=[], outputs=mode_outputs, api_visibility='private', queue=False))
 

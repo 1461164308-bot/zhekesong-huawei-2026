@@ -1,0 +1,667 @@
+{
+ "version": 1,
+ "model": "HUAWEI MateBook Fold 非凡大师",
+ "folder": "HUAWEI MateBook Fold 非凡大师",
+ "category": "01-鸿蒙电脑",
+ "library": "任德耀新建华为PC知识库/华为PC全板块深度知识库_v7",
+ "captured": "2026-10-17",
+ "urls": [
+  "https://consumer.huawei.com/cn/harmonyos-computer/matebook-fold-ultimate-design/",
+  "https://consumer.huawei.com/cn/harmonyos-computer/matebook-fold-ultimate-design/specs/"
+ ],
+ "positioning": "",
+ "selling_titles": [],
+ "source_note": "来源：华为官网公开产品页与规格页。抓取日期：2026-10-17。配置可能因销售版本而异，生成内容时必须保留限定条件并以实际销售版本为准。",
+ "fields": [
+  {
+   "section": "操作系统",
+   "name": "",
+   "values": [
+    {
+     "text": "HarmonyOS 6.1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "HarmonyOS 6.1"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "宽度",
+   "values": [
+    {
+     "text": "382.5 mm",
+     "variant": "",
+     "label": "展开态",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "288.5 mm",
+     "variant": "",
+     "label": "闭合态",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "宽度\n展开态：382.5 mm\n闭合态：288.5 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "深度",
+   "values": [
+    {
+     "text": "288.5 mm",
+     "variant": "",
+     "label": "展开态",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "193.7 mm",
+     "variant": "",
+     "label": "闭合态",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "深度\n展开态：288.5 mm\n闭合态：193.7 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "高度",
+   "values": [
+    {
+     "text": "7.6 mm（左）/ 7.3 mm（右）",
+     "variant": "",
+     "label": "展开态",
+     "inline": "",
+     "conditions": [
+      "左是指摄像头所在的左半屏，右是指非摄像头所在的右半屏。"
+     ]
+    },
+    {
+     "text": "14.9 mm",
+     "variant": "",
+     "label": "闭合态",
+     "inline": "",
+     "conditions": [
+      "左是指摄像头所在的左半屏，右是指非摄像头所在的右半屏。"
+     ]
+    }
+   ],
+   "conditions": [
+    "左是指摄像头所在的左半屏，右是指非摄像头所在的右半屏。"
+   ],
+   "quote": "高度\n展开态：7.6 mm（左）/ 7.3 mm（右）\n闭合态：14.9 mm\n*左是指摄像头所在的左半屏，右是指非摄像头所在的右半屏。"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "重量",
+   "values": [
+    {
+     "text": "约 1.16 kg",
+     "variant": "",
+     "label": "",
+     "inline": "含电池,不含键盘",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "重量\n约 1.16 kg（含电池,不含键盘）\n*实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "屏幕",
+   "name": "尺寸",
+   "values": [
+    {
+     "text": "18 英寸",
+     "variant": "",
+     "label": "展开态",
+     "inline": "",
+     "conditions": [
+      "显示屏采用圆角设计，按照标准矩形测量时，展开态时屏幕的对角线长度是 18 英寸（实际可视区域略小）；折叠态时上半屏和下半屏的对角线长度是 13 英寸。"
+     ]
+    },
+    {
+     "text": "13 英寸",
+     "variant": "",
+     "label": "折叠态",
+     "inline": "",
+     "conditions": [
+      "显示屏采用圆角设计，按照标准矩形测量时，展开态时屏幕的对角线长度是 18 英寸（实际可视区域略小）；折叠态时上半屏和下半屏的对角线长度是 13 英寸。"
+     ]
+    }
+   ],
+   "conditions": [
+    "显示屏采用圆角设计，按照标准矩形测量时，展开态时屏幕的对角线长度是 18 英寸（实际可视区域略小）；折叠态时上半屏和下半屏的对角线长度是 13 英寸。"
+   ],
+   "quote": "尺寸\n展开态：18 英寸\n折叠态：13 英寸\n*显示屏采用圆角设计，按照标准矩形测量时，展开态时屏幕的对角线长度是 18 英寸（实际可视区域略小）；折叠态时上半屏和下半屏的对角线长度是 13 英寸。"
+  },
+  {
+   "section": "屏幕",
+   "name": "类型",
+   "values": [
+    {
+     "text": "双层 OLED",
+     "variant": "",
+     "label": "",
+     "inline": "柔性显示屏",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "类型\n双层 OLED（柔性显示屏）"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏占比",
+   "values": [
+    {
+     "text": "92%",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "数据来源于华为实验室，测量数据标准以屏幕可视区域尺寸对屏幕尺寸计算屏幕占比，请以实物为准"
+     ]
+    }
+   ],
+   "conditions": [
+    "数据来源于华为实验室，测量数据标准以屏幕可视区域尺寸对屏幕尺寸计算屏幕占比，请以实物为准"
+   ],
+   "quote": "屏占比\n92%\n*数据来源于华为实验室，测量数据标准以屏幕可视区域尺寸对屏幕尺寸计算屏幕占比，请以实物为准"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏幕比例",
+   "values": [
+    {
+     "text": "4:3",
+     "variant": "",
+     "label": "展开态",
+     "inline": "",
+     "conditions": [
+      "展开态和折叠态时上半屏和下半屏的屏幕比例。"
+     ]
+    },
+    {
+     "text": "3:2",
+     "variant": "",
+     "label": "折叠态（半屏）",
+     "inline": "",
+     "conditions": [
+      "展开态和折叠态时上半屏和下半屏的屏幕比例。"
+     ]
+    }
+   ],
+   "conditions": [
+    "展开态和折叠态时上半屏和下半屏的屏幕比例。"
+   ],
+   "quote": "屏幕比例\n展开态：4:3\n折叠态（半屏）：3:2\n*展开态和折叠态时上半屏和下半屏的屏幕比例。"
+  },
+  {
+   "section": "屏幕",
+   "name": "分辨率",
+   "values": [
+    {
+     "text": "3296 × 2472",
+     "variant": "",
+     "label": "展开态",
+     "inline": "",
+     "conditions": [
+      "显示屏采用圆角设计，展开态和折叠态的分辨率对应标准矩形，实际屏幕有效像素略少。"
+     ]
+    },
+    {
+     "text": "2472 × 1648",
+     "variant": "",
+     "label": "折叠态（半屏）",
+     "inline": "",
+     "conditions": [
+      "显示屏采用圆角设计，展开态和折叠态的分辨率对应标准矩形，实际屏幕有效像素略少。"
+     ]
+    }
+   ],
+   "conditions": [
+    "显示屏采用圆角设计，展开态和折叠态的分辨率对应标准矩形，实际屏幕有效像素略少。"
+   ],
+   "quote": "分辨率\n展开态：3296 × 2472\n折叠态（半屏）：2472 × 1648\n*显示屏采用圆角设计，展开态和折叠态的分辨率对应标准矩形，实际屏幕有效像素略少。"
+  },
+  {
+   "section": "屏幕",
+   "name": "亮度",
+   "values": [
+    {
+     "text": "700 nits",
+     "variant": "",
+     "label": "典型亮度",
+     "inline": "",
+     "conditions": [
+      "典型值，数据来源于华为实验室。在 HDR 内容显示时，局部峰值亮度可达 1600 nits，请以实际体验为准。"
+     ]
+    },
+    {
+     "text": "1600 nits",
+     "variant": "",
+     "label": "峰值亮度",
+     "inline": "",
+     "conditions": [
+      "典型值，数据来源于华为实验室。在 HDR 内容显示时，局部峰值亮度可达 1600 nits，请以实际体验为准。"
+     ]
+    }
+   ],
+   "conditions": [
+    "典型值，数据来源于华为实验室。在 HDR 内容显示时，局部峰值亮度可达 1600 nits，请以实际体验为准。"
+   ],
+   "quote": "亮度\n典型亮度：700 nits\n峰值亮度：1600 nits\n*典型值，数据来源于华为实验室。在 HDR 内容显示时，局部峰值亮度可达 1600 nits，请以实际体验为准。"
+  },
+  {
+   "section": "屏幕",
+   "name": "色域",
+   "values": [
+    {
+     "text": "P3 广色域",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "P3 广色域色彩管理随应用表现存在差异。请以实际体验为准。"
+     ]
+    }
+   ],
+   "conditions": [
+    "P3 广色域色彩管理随应用表现存在差异。请以实际体验为准。"
+   ],
+   "quote": "色域\nP3 广色域\n*P3 广色域色彩管理随应用表现存在差异。请以实际体验为准。"
+  },
+  {
+   "section": "屏幕",
+   "name": "对比度",
+   "values": [
+    {
+     "text": "2000000:1",
+     "variant": "",
+     "label": "HDR 模式",
+     "inline": "",
+     "conditions": [
+      "典型值，数据来源于华为实验室。"
+     ]
+    },
+    {
+     "text": "1000000:1",
+     "variant": "",
+     "label": "普通模式",
+     "inline": "",
+     "conditions": [
+      "典型值，数据来源于华为实验室。"
+     ]
+    }
+   ],
+   "conditions": [
+    "典型值，数据来源于华为实验室。"
+   ],
+   "quote": "对比度\nHDR 模式：2000000:1\n普通模式：1000000:1\n*典型值，数据来源于华为实验室。"
+  },
+  {
+   "section": "处理器",
+   "name": "",
+   "values": [
+    {
+     "text": "麒麟X90 Plus",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "麒麟X90 Plus"
+  },
+  {
+   "section": "存储",
+   "name": "",
+   "values": [
+    {
+     "text": "2 TB / 1 TB / 512 GB SSD",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "硬盘格式化之后的实际容量可能较小。"
+     ]
+    }
+   ],
+   "conditions": [
+    "硬盘格式化之后的实际容量可能较小。"
+   ],
+   "quote": "2 TB / 1 TB / 512 GB SSD\n*硬盘格式化之后的实际容量可能较小。"
+  },
+  {
+   "section": "内存",
+   "name": "",
+   "values": [
+    {
+     "text": "24 GB / 32 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "可使用的内存容量小于此值，因为系统软件占用部分空间。"
+     ]
+    }
+   ],
+   "conditions": [
+    "可使用的内存容量小于此值，因为系统软件占用部分空间。"
+   ],
+   "quote": "24 GB / 32 GB\n*可使用的内存容量小于此值，因为系统软件占用部分空间。"
+  },
+  {
+   "section": "无线连接",
+   "name": "WLAN",
+   "values": [
+    {
+     "text": "Wi-Fi 6，IEEE 802.11a/b/g/n/ac/ax，160 MHz",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2.4 GHz 和 5 GHz 双频",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2 × 2 MIMO",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "支持 WPA/WPA2/WPA3",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "WLAN\nWi-Fi 6，IEEE 802.11a/b/g/n/ac/ax，160 MHz\n2.4 GHz 和 5 GHz 双频\n2 × 2 MIMO\n支持 WPA/WPA2/WPA3"
+  },
+  {
+   "section": "无线连接",
+   "name": "蓝牙",
+   "values": [
+    {
+     "text": "蓝牙 5.2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "蓝牙\n蓝牙 5.2"
+  },
+  {
+   "section": "无线连接",
+   "name": "星闪",
+   "values": [
+    {
+     "text": "星闪 E1.0",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "星闪\n支持，星闪 E1.0"
+  },
+  {
+   "section": "电池",
+   "name": "容量",
+   "values": [
+    {
+     "text": "74.69 Wh",
+     "variant": "",
+     "label": "",
+     "inline": "额定容量",
+     "conditions": [
+      "电池使用时间依使用情况和设置的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "电池使用时间依使用情况和设置的不同可能有所差异。"
+   ],
+   "quote": "容量\n74.69 Wh（额定容量）\n*电池使用时间依使用情况和设置的不同可能有所差异。"
+  },
+  {
+   "section": "接口",
+   "name": "",
+   "values": [
+    {
+     "text": "折叠态",
+     "variant": "",
+     "label": "",
+     "inline": "摄像头在上",
+     "conditions": []
+    },
+    {
+     "text": "USB-C × 1",
+     "variant": "",
+     "label": "",
+     "inline": "右侧",
+     "conditions": []
+    },
+    {
+     "text": "USB-C × 1",
+     "variant": "",
+     "label": "",
+     "inline": "上侧",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "折叠态（摄像头在上）\nUSB-C × 1（右侧）\nUSB-C × 1（上侧）"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "",
+   "values": [
+    {
+     "text": "华为星跃随行键盘，星闪无线连接，1.5 mm 键程，压力触控板",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "华为星跃随行键盘，星闪无线连接，1.5 mm 键程，压力触控板"
+  },
+  {
+   "section": "摄像头",
+   "name": "",
+   "values": [
+    {
+     "text": "800 万像素前置摄像头",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "800 万像素前置摄像头"
+  },
+  {
+   "section": "音频",
+   "name": "",
+   "values": [
+    {
+     "text": "扬声器 × 6",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "麦克风 × 4",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "扬声器 × 6\n麦克风 × 4"
+  },
+  {
+   "section": "特色应用",
+   "name": "",
+   "values": [
+    {
+     "text": "华为笔记、天生会画、小艺慧记、小艺深度研究、小艺智慧搜索、小艺输入法、待机屏保、显示器模式、移动全景声、文件管理、图库、畅连、备忘录、日历、智慧生活、我的华为、华为云空间、华为应用市场、华为分享、应用接续、键鼠共享、跨设备剪贴板、超级终端、碰一碰、通信共享、无线投屏、有线投屏",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "如在选购或使用时对功能体验、使用限制、支持机⁠型等有疑问，请咨询华为客服（950800）⁠。"
+     ]
+    }
+   ],
+   "conditions": [
+    "如在选购或使用时对功能体验、使用限制、支持机⁠型等有疑问，请咨询华为客服（950800）⁠。"
+   ],
+   "quote": "华为笔记、天生会画、小艺慧记、小艺深度研究、小艺智慧搜索、小艺输入法、待机屏保、显示器模式、移动全景声、文件管理、图库、畅连、备忘录、日历、智慧生活、我的华为、华为云空间、华为应用市场、华为分享、应用接续、键鼠共享、跨设备剪贴板、超级终端、碰一碰、通信共享、无线投屏、有线投屏\n*如在选购或使用时对功能体验、使用限制、支持机⁠型等有疑问，请咨询华为客服（950800）⁠。"
+  },
+  {
+   "section": "包装清单",
+   "name": "",
+   "values": [
+    {
+     "text": "HUAWEI MateBook Fold 非凡大师 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "华为超级快充电源适配器（黑色）（Max 140 W）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "电源适配器线（黑色编织）（USB-C）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "华为星跃随行键盘 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "屏幕擦拭布 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "温馨提示卡片 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "HUAWEI M-Pen 3 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "备用笔尖 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "笔尖夹 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "手写笔笔套 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "华为折叠电脑尊享收纳包 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "快速指南（折叠电脑）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "快速指南（手写笔）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "即将离开consumer.huawei.com",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "HUAWEI MateBook Fold 非凡大师 × 1\n华为超级快充电源适配器（黑色）（Max 140 W）× 1\n电源适配器线（黑色编织）（USB-C）× 1\n华为星跃随行键盘 × 1\n屏幕擦拭布 × 1\n温馨提示卡片 × 1\nHUAWEI M-Pen 3 × 1\n备用笔尖 × 1\n笔尖夹 × 1\n手写笔笔套 × 1\n华为折叠电脑尊享收纳包 × 1\n快速指南（折叠电脑）× 1\n快速指南（手写笔）× 1\n即将离开consumer.huawei.com\n您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。"
+  }
+ ]
+}

@@ -1,0 +1,586 @@
+{
+ "version": 1,
+ "model": "HUAWEI MateBook D 16 2024",
+ "folder": "MateBook D 16",
+ "category": "02-MateBook-Windows",
+ "library": "任德耀新建华为PC知识库/华为PC全板块深度知识库_v7",
+ "captured": "2026-10-17",
+ "urls": [
+  "https://consumer.huawei.com/cn/laptops/matebook-d-16-2024/",
+  "https://consumer.huawei.com/cn/laptops/matebook-d-16-2024/specs/"
+ ],
+ "positioning": "",
+ "selling_titles": [],
+ "source_note": "来源：华为官网公开产品页与规格页。抓取日期：2026-10-17。配置可能因销售版本而异，生成内容时必须保留限定条件并以实际销售版本为准。",
+ "fields": [
+  {
+   "section": "操作系统",
+   "name": "",
+   "values": [
+    {
+     "text": "Windows 11 家庭版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "Linux V20 版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "Windows 11 家庭版\nLinux V20 版"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "长度",
+   "values": [
+    {
+     "text": "18 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "长度\n18 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "宽度",
+   "values": [
+    {
+     "text": "356.7 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "宽度\n356.7 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "厚度",
+   "values": [
+    {
+     "text": "248.7 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "厚度\n248.7 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "重量",
+   "values": [
+    {
+     "text": "约 1.68 kg",
+     "variant": "",
+     "label": "",
+     "inline": "56 Wh 电池版本",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "约 1.72 kg",
+     "variant": "",
+     "label": "",
+     "inline": "70 Wh 电池版本",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "重量\n约 1.68 kg（56 Wh 电池版本）\n约 1.72 kg（70 Wh 电池版本）\n*实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "屏幕",
+   "name": "尺寸",
+   "values": [
+    {
+     "text": "16 英寸",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "尺寸\n16 英寸"
+  },
+  {
+   "section": "屏幕",
+   "name": "类型",
+   "values": [
+    {
+     "text": "IPS",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "类型\nIPS"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏占比",
+   "values": [
+    {
+     "text": "90%",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏占比\n90%"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏幕比例",
+   "values": [
+    {
+     "text": "16:10",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏幕比例\n16:10"
+  },
+  {
+   "section": "屏幕",
+   "name": "分辨率",
+   "values": [
+    {
+     "text": "1920 × 1200，142 ppi",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "分辨率\n1920 × 1200，142 ppi"
+  },
+  {
+   "section": "屏幕",
+   "name": "亮度",
+   "values": [
+    {
+     "text": "300 nits",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "亮度\n300 nits"
+  },
+  {
+   "section": "屏幕",
+   "name": "色域",
+   "values": [
+    {
+     "text": "100% sRGB / 45% NTSC",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色域\n100% sRGB / 45% NTSC"
+  },
+  {
+   "section": "屏幕",
+   "name": "对比度",
+   "values": [
+    {
+     "text": "1200:1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "对比度\n1200:1"
+  },
+  {
+   "section": "屏幕",
+   "name": "可视角度",
+   "values": [
+    {
+     "text": "178°",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "数据来源于华为实验室，测量数据标准以屏幕可视区域尺寸对屏幕尺寸计算屏幕占比，请以实物为准。",
+      "屏幕色域、对比度、亮度、可视角度等数据为典型值。"
+     ]
+    }
+   ],
+   "conditions": [
+    "数据来源于华为实验室，测量数据标准以屏幕可视区域尺寸对屏幕尺寸计算屏幕占比，请以实物为准。",
+    "屏幕色域、对比度、亮度、可视角度等数据为典型值。"
+   ],
+   "quote": "可视角度\n178°\n*数据来源于华为实验室，测量数据标准以屏幕可视区域尺寸对屏幕尺寸计算屏幕占比，请以实物为准。\n**屏幕色域、对比度、亮度、可视角度等数据为典型值。"
+  },
+  {
+   "section": "处理器",
+   "name": "",
+   "values": [
+    {
+     "text": "第 13 代英特尔®酷睿™ i9-13900H 标压处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "仅限 Windows 版本产品搭载。"
+     ]
+    },
+    {
+     "text": "第 13 代英特尔®酷睿™ i5-13420H 标压处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "仅限 Windows 版本产品搭载。"
+     ]
+    }
+   ],
+   "conditions": [
+    "仅限 Windows 版本产品搭载。"
+   ],
+   "quote": "第 13 代英特尔®酷睿™ i9-13900H 标压处理器\n*仅限 Windows 版本产品搭载。\n第 13 代英特尔®酷睿™ i5-13420H 标压处理器"
+  },
+  {
+   "section": "存储",
+   "name": "",
+   "values": [
+    {
+     "text": "1 TB NVMe PCIe SSD",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "硬盘格式化之后的实际容量可能较小。"
+     ]
+    }
+   ],
+   "conditions": [
+    "硬盘格式化之后的实际容量可能较小。"
+   ],
+   "quote": "1 TB NVMe PCIe SSD\n*硬盘格式化之后的实际容量可能较小。"
+  },
+  {
+   "section": "内存",
+   "name": "",
+   "values": [
+    {
+     "text": "16 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "16 GB"
+  },
+  {
+   "section": "无线连接",
+   "name": "WLAN",
+   "values": [
+    {
+     "text": "IEEE 802.11a/b/g/n/ac/ax",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2.4 GHz 和 5 GHz 双频",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2 × 2 MIMO",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "支持 WPA/WPA2/WPA3",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "WLAN\nIEEE 802.11a/b/g/n/ac/ax\n2.4 GHz 和 5 GHz 双频\n2 × 2 MIMO\n支持 WPA/WPA2/WPA3"
+  },
+  {
+   "section": "无线连接",
+   "name": "蓝牙",
+   "values": [
+    {
+     "text": "蓝牙 5.1",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "蓝牙 4.2",
+     "variant": "",
+     "label": "Linux V20 版",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "蓝牙\nWindows 版：蓝牙 5.1\nLinux V20 版：蓝牙 4.2"
+  },
+  {
+   "section": "电池",
+   "name": "容量",
+   "values": [
+    {
+     "text": "56 Wh / 70 Wh",
+     "variant": "",
+     "label": "",
+     "inline": "额定容量",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "容量\n56 Wh / 70 Wh（额定容量）"
+  },
+  {
+   "section": "接口",
+   "name": "",
+   "values": [
+    {
+     "text": "USB-C 3.2 Gen 1（支持数据、对外供电 10 W（5V/2A）、DisplayPort 1.2）",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "USB-A 3.2 Gen 1（左侧第 2 个，支持数据和对外供电 10 W（5V/2A））",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "USB-A 2.0（右侧第 1 个，支持数据和对外供电 7.5 W（5V/1.5A））",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "HDMI × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "3.5 mm 耳机 & 麦克风二合一接口 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "USB-C 3.2 Gen 1（支持数据、对外供电 10 W（5V/2A）、DisplayPort 1.2）\nUSB-A 3.2 Gen 1（左侧第 2 个，支持数据和对外供电 10 W（5V/2A））\nUSB-A 2.0（右侧第 1 个，支持数据和对外供电 7.5 W（5V/1.5A））\nHDMI × 1\n3.5 mm 耳机 & 麦克风二合一接口 × 1"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "",
+   "values": [
+    {
+     "text": "全尺寸键盘，1.5 mm 键程",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "快捷键功能仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "支持独立数字键盘",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "快捷键功能仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "支持 5 点触控",
+     "variant": "",
+     "label": "",
+     "inline": "Windows 11 当前仅支持四点手势识别",
+     "conditions": [
+      "快捷键功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "快捷键功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "全尺寸键盘，1.5 mm 键程\n支持独立数字键盘\n*快捷键功能仅限 Windows 版本产品支持。\n支持 5 点触控（Windows 11 当前仅支持四点手势识别）"
+  },
+  {
+   "section": "摄像头",
+   "name": "",
+   "values": [
+    {
+     "text": "100 万像素前置摄像头",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "100 万像素前置摄像头"
+  },
+  {
+   "section": "音频",
+   "name": "",
+   "values": [
+    {
+     "text": "麦克风 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "扬声器 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "麦克风 × 2\n扬声器 × 2"
+  },
+  {
+   "section": "特色应用",
+   "name": "华为分享",
+   "values": [
+    {
+     "text": "显示管理",
+     "variant": "",
+     "label": "",
+     "inline": "护眼模式",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "华为 F10 一键还原",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "高能模式",
+     "variant": "",
+     "label": "",
+     "inline": "热键 Fn + P 切换",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "以上功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "华为分享\n显示管理（护眼模式）\n华为 F10 一键还原\n高能模式（热键 Fn + P 切换）\n*以上功能仅限 Windows 版本产品支持。"
+  },
+  {
+   "section": "包装清单",
+   "name": "",
+   "values": [
+    {
+     "text": "HUAWEI MateBook D 16 2024",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "65 W 多功能充电器",
+     "variant": "",
+     "label": "",
+     "inline": "含线缆",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "HUAWEI MateBook D 16 2024\n65 W 多功能充电器（含线缆）"
+  },
+  {
+   "section": "包装清单",
+   "name": "快速入门",
+   "values": [
+    {
+     "text": "即将离开consumer.huawei.com",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "快速入门\n即将离开consumer.huawei.com\n您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。"
+  }
+ ]
+}

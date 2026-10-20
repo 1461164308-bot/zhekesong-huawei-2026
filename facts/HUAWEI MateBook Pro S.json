@@ -1,0 +1,650 @@
+{
+ "version": 1,
+ "model": "HUAWEI MateBook Pro S",
+ "folder": "HUAWEI MateBook Pro S",
+ "category": "01-鸿蒙电脑",
+ "library": "任德耀新建华为PC知识库/华为PC全板块深度知识库_v7",
+ "captured": "2026-10-17",
+ "urls": [
+  "https://consumer.huawei.com/cn/harmonyos-computer/matebook-pro-s/",
+  "https://consumer.huawei.com/cn/harmonyos-computer/matebook-pro-s/specs/"
+ ],
+ "positioning": "",
+ "selling_titles": [],
+ "source_note": "来源：华为官网公开产品页与规格页。抓取日期：2026-10-17。配置可能因销售版本而异，生成内容时必须保留限定条件并以实际销售版本为准。",
+ "fields": [
+  {
+   "section": "操作系统",
+   "name": "",
+   "values": [
+    {
+     "text": "HarmonyOS 6.1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "HarmonyOS 6.1"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "宽度",
+   "values": [
+    {
+     "text": "310.8 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "宽度\n310.8 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "深度",
+   "values": [
+    {
+     "text": "220.8 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "深度\n220.8 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "高度",
+   "values": [
+    {
+     "text": "11.9 mm",
+     "variant": "",
+     "label": "标准屏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和厚度依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "11.9 mm",
+     "variant": "",
+     "label": "防窥屏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和厚度依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "11.9 mm",
+     "variant": "",
+     "label": "柔光屏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和厚度依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "12.2 mm",
+     "variant": "",
+     "label": "典藏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和厚度依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际尺寸和厚度依配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "高度\nHUAWEI MateBook Pro S 标准屏版：11.9 mm\nHUAWEI MateBook Pro S 防窥屏版：11.9 mm\nHUAWEI MateBook Pro S 柔光屏版：11.9 mm\nHUAWEI MateBook Pro S 典藏版：12.2 mm\n*实际尺寸和厚度依配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "重量",
+   "values": [
+    {
+     "text": "798 g",
+     "variant": "",
+     "label": "标准屏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "798 g",
+     "variant": "",
+     "label": "防窥屏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "805 g",
+     "variant": "",
+     "label": "柔光屏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    },
+    {
+     "text": "825 g",
+     "variant": "",
+     "label": "典藏版",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "重量\nHUAWEI MateBook Pro S 标准屏版：798 g\nHUAWEI MateBook Pro S 防窥屏版：798 g\nHUAWEI MateBook Pro S 柔光屏版：805 g\nHUAWEI MateBook Pro S 典藏版：825 g\n*实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "屏幕",
+   "name": "尺寸",
+   "values": [
+    {
+     "text": "14.2 英寸",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "尺寸\n14.2 英寸"
+  },
+  {
+   "section": "屏幕",
+   "name": "类型",
+   "values": [
+    {
+     "text": "柔性 OLED",
+     "variant": "",
+     "label": "",
+     "inline": "标准屏、防窥屏、柔光屏",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "类型\n柔性 OLED（标准屏、防窥屏、柔光屏）"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏占比",
+   "values": [
+    {
+     "text": "93.5%",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏占比\n93.5%"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏幕比例",
+   "values": [
+    {
+     "text": "3:2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏幕比例\n3:2"
+  },
+  {
+   "section": "屏幕",
+   "name": "分辨率",
+   "values": [
+    {
+     "text": "3120 × 2080，264 ppi",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "分辨率\n3120 × 2080，264 ppi"
+  },
+  {
+   "section": "屏幕",
+   "name": "刷新率",
+   "values": [
+    {
+     "text": "120 Hz",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "刷新率\n120 Hz"
+  },
+  {
+   "section": "屏幕",
+   "name": "峰值亮度",
+   "values": [
+    {
+     "text": "1600 尼特",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "典型值，数据来源于华为实验室。需关闭防窥模式，打开 HDR 模式，并配合 HDR 内容源显示，局部峰值亮度可达 1600 尼特⁠，请以实际使用情况为准。"
+     ]
+    }
+   ],
+   "conditions": [
+    "典型值，数据来源于华为实验室。需关闭防窥模式，打开 HDR 模式，并配合 HDR 内容源显示，局部峰值亮度可达 1600 尼特⁠，请以实际使用情况为准。"
+   ],
+   "quote": "峰值亮度\n1600 尼特\n*典型值，数据来源于华为实验室。需关闭防窥模式，打开 HDR 模式，并配合 HDR 内容源显示，局部峰值亮度可达 1600 尼特⁠，请以实际使用情况为准。"
+  },
+  {
+   "section": "屏幕",
+   "name": "色域",
+   "values": [
+    {
+     "text": "P3 色域 / sRGB 色域",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色域\nP3 色域 / sRGB 色域"
+  },
+  {
+   "section": "屏幕",
+   "name": "色准",
+   "values": [
+    {
+     "text": "平均 △E < 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色准\n平均 △E < 1"
+  },
+  {
+   "section": "屏幕",
+   "name": "色深",
+   "values": [
+    {
+     "text": "10.7 亿色",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色深\n10.7 亿色"
+  },
+  {
+   "section": "屏幕",
+   "name": "对比度",
+   "values": [
+    {
+     "text": "2000000:1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "对比度\n2000000:1"
+  },
+  {
+   "section": "屏幕",
+   "name": "触摸屏",
+   "values": [
+    {
+     "text": "支持十点触控",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "触摸屏\n支持十点触控"
+  },
+  {
+   "section": "处理器",
+   "name": "",
+   "values": [
+    {
+     "text": "麒麟XE90 处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "麒麟XE90 处理器"
+  },
+  {
+   "section": "存储",
+   "name": "",
+   "values": [
+    {
+     "text": "1 TB / 512 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "硬盘格式化之后的实际容量可能较小。"
+     ]
+    }
+   ],
+   "conditions": [
+    "硬盘格式化之后的实际容量可能较小。"
+   ],
+   "quote": "1 TB / 512 GB\n*硬盘格式化之后的实际容量可能较小。"
+  },
+  {
+   "section": "内存",
+   "name": "",
+   "values": [
+    {
+     "text": "32 GB / 24 GB / 16 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "32 GB / 24 GB / 16 GB"
+  },
+  {
+   "section": "无线连接",
+   "name": "WLAN",
+   "values": [
+    {
+     "text": "802.11a/b/g/n/ac/ax/be",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2.4 GHz 和 5 GHz 双频",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2 × 2 MIMO",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "支持 WPA/WPA2/WPA3",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "WLAN\n802.11a/b/g/n/ac/ax/be\n2.4 GHz 和 5 GHz 双频\n2 × 2 MIMO\n支持 WPA/WPA2/WPA3"
+  },
+  {
+   "section": "无线连接",
+   "name": "蓝牙",
+   "values": [
+    {
+     "text": "蓝牙 6.0",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "蓝牙\n蓝牙 6.0"
+  },
+  {
+   "section": "电池",
+   "name": "容量",
+   "values": [
+    {
+     "text": "54 Wh",
+     "variant": "",
+     "label": "",
+     "inline": "额定容量",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "容量\n54 Wh（额定容量）"
+  },
+  {
+   "section": "接口",
+   "name": "",
+   "values": [
+    {
+     "text": "左侧：USB Type-C（USB 3.2 Gen 1）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "标准屏版、柔光屏版机型支持一键开启/关闭摄像头、麦克风及定位权限；防窥屏版、典藏版机型支持一键开启/关闭防窥功能。"
+     ]
+    },
+    {
+     "text": "USB Type-C（USB 3.2 Gen 1）× 1，支持 DisplayPort 1.2",
+     "variant": "",
+     "label": "右侧",
+     "inline": "最大分辨率 4K@60 Hz",
+     "conditions": [
+      "标准屏版、柔光屏版机型支持一键开启/关闭摄像头、麦克风及定位权限；防窥屏版、典藏版机型支持一键开启/关闭防窥功能。"
+     ]
+    },
+    {
+     "text": "隐私开关 × 1",
+     "variant": "",
+     "label": "右侧",
+     "inline": "",
+     "conditions": [
+      "标准屏版、柔光屏版机型支持一键开启/关闭摄像头、麦克风及定位权限；防窥屏版、典藏版机型支持一键开启/关闭防窥功能。"
+     ]
+    }
+   ],
+   "conditions": [
+    "标准屏版、柔光屏版机型支持一键开启/关闭摄像头、麦克风及定位权限；防窥屏版、典藏版机型支持一键开启/关闭防窥功能。"
+   ],
+   "quote": "左侧：USB Type-C（USB 3.2 Gen 1）× 1\n右侧：USB Type-C（USB 3.2 Gen 1）× 1，支持 DisplayPort 1.2（最大分辨率 4K@60 Hz）\n右侧：隐私开关* × 1\n*标准屏版、柔光屏版机型支持一键开启/关闭摄像头、麦克风及定位权限；防窥屏版、典藏版机型支持一键开启/关闭防窥功能。"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "",
+   "values": [
+    {
+     "text": "触控板支持多点触控和压力触控；支持 HUAWEI M-PEN 3 书写",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "触控板支持多点触控和压力触控；支持 HUAWEI M-PEN 3 书写"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "内置“华为分享”感应区",
+   "values": [
+    {
+     "text": "1.5 mm 键程",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "内置“华为分享”感应区\n1.5 mm 键程"
+  },
+  {
+   "section": "摄像头",
+   "name": "",
+   "values": [
+    {
+     "text": "1080P 高清前置摄像头 × 1，前置环境光传感器 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "1080P 高清后置摄像头 × 1，后置环境光传感器 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "1080P 高清前置摄像头 × 1，前置环境光传感器 × 1\n1080P 高清后置摄像头 × 1，后置环境光传感器 × 1"
+  },
+  {
+   "section": "音频",
+   "name": "",
+   "values": [
+    {
+     "text": "扬声器 × 4",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "麦克风 × 6",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "扬声器 × 4\n麦克风 × 6"
+  },
+  {
+   "section": "特色应用",
+   "name": "",
+   "values": [
+    {
+     "text": "小艺慧记、小艺深度研究、小艺智慧搜索、小艺输入法、待机屏保、华为笔记、AI 智慧伴唱、AI 降噪通话、文件管理、图库、畅连、备忘录、日历、智慧生活、我的华为、华为云空间、华为应用市场、华为分享、应用接续、键鼠共享、跨设备剪贴板、超级终端、碰一碰、通信共享、无线投屏、有线投屏",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "小艺慧记、小艺深度研究、小艺智慧搜索、小艺输入法、待机屏保、华为笔记、AI 智慧伴唱、AI 降噪通话、文件管理、图库、畅连、备忘录、日历、智慧生活、我的华为、华为云空间、华为应用市场、华为分享、应用接续、键鼠共享、跨设备剪贴板、超级终端、碰一碰、通信共享、无线投屏、有线投屏"
+  },
+  {
+   "section": "包装清单",
+   "name": "",
+   "values": [
+    {
+     "text": "笔记本 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "华为超级快充多设备电源适配器（66 W）恒功率版 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "USB Type-C 转 USB Type-C 充电数据线 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "USB Type-C 转 USB Type-A 转接线 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "快速指南 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "抛光布 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "仅柔光屏版支持",
+     "conditions": []
+    },
+    {
+     "text": "手写笔（HUAWEI M-Pen 3 幻夜黑，含备用笔尖和笔尖夹）× 1",
+     "variant": "",
+     "label": "",
+     "inline": "仅典藏版支持",
+     "conditions": []
+    },
+    {
+     "text": "即将离开consumer.huawei.com",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "笔记本 × 1\n华为超级快充多设备电源适配器（66 W）恒功率版 × 1\nUSB Type-C 转 USB Type-C 充电数据线 × 1\nUSB Type-C 转 USB Type-A 转接线 × 1\n快速指南 × 1\n抛光布 × 1（仅柔光屏版支持）\n手写笔（HUAWEI M-Pen 3 幻夜黑，含备用笔尖和笔尖夹）× 1（仅典藏版支持）\n即将离开consumer.huawei.com\n您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。"
+  }
+ ]
+}

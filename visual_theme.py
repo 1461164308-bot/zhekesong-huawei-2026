@@ -4,7 +4,10 @@ DESKTOP_HTML = r"""
 <div class="zh-liquid-aurora" aria-hidden="true"><span></span><span></span><span></span></div>
 <section id="zh-desktop" data-ready="false" aria-label="知衡液态玻璃创作空间">
   <header class="zh-topbar zh-liquid">
-    <div class="zh-brand"><span aria-hidden="true">知</span><strong>知衡</strong><small>华为 PC 图文营销智能体</small></div>
+    <div class="zh-brand">
+      <svg class="zh-mark" viewBox="0 0 64 64" role="img" aria-label="知衡图标"><g fill="#c7000b" transform="translate(32 32)"><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(45)"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(90)"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(135)"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(180)"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(225)"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(270)"/><path d="M 0 -6.4 C 5.7 -12.4 6.6 -20.6 0 -27 C -6.6 -20.6 -5.7 -12.4 0 -6.4 Z" transform="rotate(315)"/></g></svg>
+      <strong>知衡</strong><small>华为 PC 图文营销智能体</small>
+    </div>
     <span class="zh-local">你的风格 · 有据可循</span>
   </header>
   <div class="zh-liquid-banner">
@@ -32,7 +35,7 @@ body,body.dark { background:#edf2f9 !important; }
 #zh-liquid-header .html-container { padding:0 !important; }
 .zh-topbar { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0 16px;border-bottom:1px solid #d9e2ef;color:#172c49; }
 .zh-brand { display:flex;align-items:center;gap:10px; }
-.zh-brand > span { display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#175ddc;color:#fff;font-weight:700; }
+.zh-brand .zh-mark { width:30px;height:30px;flex:none;display:block; }
 .zh-brand strong { font-size:20px; }
 .zh-brand small,.zh-local { font-size:12px;color:#5b6d85; }
 #zh-guide { margin:0 !important;font-size:12px;color:#5b6d85 !important; }
@@ -100,7 +103,15 @@ body,body.dark { background:#dbe8fb !important;background-image:linear-gradient(
 .zh-liquid::before { content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(340px circle at var(--zh-mx,50%) var(--zh-my,30%),#ffffff55,transparent 72%); }
 .zh-liquid > * { position:relative; }
 .zh-topbar { padding:12px 20px;border-radius:24px;gap:12px;margin-bottom:14px; }
-.zh-brand > span { background:linear-gradient(135deg,#0858ef,#5f99ff);box-shadow:0 5px 14px #1659cf30,inset 0 1px 1px #ffffff99; }
+.zh-brand .zh-mark { filter:drop-shadow(0 4px 10px #c7000b26); }
+/* 快发模式的见闻预选卡：一排小按钮，点一下填空，不生成。 */
+#zh-quick-presets-hint { font-size:12px;color:#526581;margin:2px 0 6px !important; }
+.zh-quick-preset-row { gap:8px !important;flex-wrap:nowrap !important;align-items:stretch !important; }
+.zh-quick-preset-row > * { flex:1 1 0 !important;min-width:0 !important; }
+.zh-quick-preset-row button { width:100%;min-width:0 !important;min-height:38px;border-radius:9px !important;
+  font-size:12.5px !important;padding:0 4px !important;white-space:nowrap;
+  background:#f4f7fb !important;border:1px solid #dbe4ef !important;color:#2b4a74 !important;box-shadow:none !important; }
+.zh-quick-preset-row button:hover { background:#e8f0fb !important;border-color:#bcd2ee !important;color:#12488f !important; }
 .zh-local { background:#ffffff70;border:1px solid #ffffffa6;border-radius:99px;padding:7px 12px;color:#3260a2;white-space:nowrap; }
 .zh-liquid-banner { display:grid;grid-template-columns:1.35fr 1fr;gap:16px; }
 .zh-liquid-intro,.zh-liquid-clock { border-radius:26px;padding:22px 26px;min-width:0; }
@@ -149,8 +160,8 @@ html[data-zh-hidden="true"] .zh-liquid-aurora span { animation-play-state:paused
 /* Mode entry is a real choice, not a second set of hidden workflow anchors. */
 #zh-mode-home { gap:18px !important;padding:12px 0 18px !important; }
 #zh-mode-cards { gap:22px !important;align-items:stretch; }
-.zh-mode-card { min-width:280px !important;background:linear-gradient(140deg,#ffffffb8,#ffffff70) !important;border:1px solid #ffffffdf;border-radius:28px;padding:27px !important;backdrop-filter:blur(26px) saturate(140%);box-shadow:0 18px 40px #3557a51b,inset 0 1px 1px #fff;transition:transform .22s ease,box-shadow .22s ease; }
-.zh-mode-card:hover,.zh-mode-card:focus-within { transform:translateY(-4px);box-shadow:0 24px 46px #3557a52d,inset 0 1px 1px #fff; }
+.zh-mode-card { min-width:280px !important;background:linear-gradient(140deg,#ffffffb8,#ffffff70) !important;border:1px solid #ffffffdf;border-radius:28px;padding:27px !important;backdrop-filter:blur(26px) saturate(140%);box-shadow:0 18px 40px #3557a51b,inset 0 1px 1px #fff;transform:perspective(1100px) rotateX(var(--zh-rx,0deg)) rotateY(var(--zh-ry,0deg)) translateY(var(--zh-lift,0px));transform-style:preserve-3d;will-change:transform;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease; }
+.zh-mode-card:hover,.zh-mode-card:focus-within { --zh-lift:-4px;box-shadow:0 24px 46px #3557a52d,inset 0 1px 1px #fff;border-color:#ffffff !important; }
 .zh-mode-card .html-container { padding:0 !important; }
 .zh-mode-icon { width:46px;height:46px;display:grid;place-items:center;background:linear-gradient(135deg,#e2eeff,#ffffffad);border:1px solid #ffffffdd;border-radius:16px;font-size:27px;color:#2467cf; }
 .zh-mode-card h3 { font-size:27px !important;margin:18px 0 8px !important;color:#172c49; }
@@ -175,7 +186,52 @@ html[data-zh-hidden="true"] .zh-liquid-aurora span { animation-play-state:paused
   .zh-mode-description { opacity:1;transform:none;min-height:0; }
   #zh-simple-brief,#zh-simple-conversation,#zh-simple-result { padding:16px !important; }
 }
+/* 滚动入场：默认可见，只有 JS 标记 data-zh-reveal="on" 后才先压低再浮起，JS 失效也不会白屏。 */
+html[data-zh-reveal="on"] .zh-reveal { opacity:0;translate:0 12px;transition:none; }
+html[data-zh-reveal="on"] .zh-reveal.zh-in { opacity:1;translate:0 0;
+  transition:opacity .52s ease,translate .58s cubic-bezier(.22,.9,.25,1); }
+@media(prefers-reduced-motion:reduce) {
+  html[data-zh-reveal="on"] .zh-reveal { opacity:1 !important;translate:none !important;transition:none !important; }
+}
+/* 指针微交互：卡片高光跟手、按钮轻轻抬起、配图放大、手风琴与标签页都有回应。 */
+.zh-liquid,.zh-mode-card { --zh-mx:50%;--zh-my:35%; }
+.zh-liquid::before { transition:background .18s ease; }
+@media (hover:hover) {
+  .gradio-container button:not(.zh-quick-preset-row button),#zh-sidebar button,.zh-mode-card button {
+    transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease;
+  }
+  .gradio-container button:hover { transform:translateY(-1px); }
+  .gradio-container button:active { transform:translateY(0) scale(.985); }
+  .gradio-container button.primary:hover,#zh-generate:hover {
+    box-shadow:0 9px 22px #145ddf30,inset 0 1px 1px #ffffffa6 !important;
+  }
+  .zh-mode-card:hover,.zh-mode-card:focus-within { border-color:#ffffff !important; }
+  .zh-mode-card:hover .zh-mode-icon,.zh-mode-card:focus-within .zh-mode-icon {
+    transform:translateZ(26px) rotate(-7deg) scale(1.08);box-shadow:0 8px 18px #2467cf22;
+  }
+  .zh-mode-icon { transition:transform .28s cubic-bezier(.22,.9,.25,1),box-shadow .28s ease; }
+  .zh-mode-card:hover h3 { color:#0f56c8; }
+  .zh-mode-card h3 { transition:color .2s ease; }
+  .zh-quick-preset-row button:hover { transform:translateY(-2px);box-shadow:0 6px 14px #2b4a7414 !important; }
+  .zh-brand:hover .zh-mark { transform:rotate(45deg) scale(1.06); }
+  .zh-brand .zh-mark { transition:transform .45s cubic-bezier(.22,.9,.25,1); }
+  #zh-quick-results button[role="tab"]:hover,#zh-mode-tabs button:hover { color:#172c49 !important; }
+  #zh-quick-results button[role="tab"] { transition:color .18s ease,border-color .18s ease; }
+  .label-wrap:hover,.accordion-header:hover { background:#ffffff8a !important;border-radius:12px; }
+  .label-wrap { transition:background .18s ease; }
+  [id^="zh-quick-gallery-"] .grid-wrap,[id^="zh-quick-gallery-"] .gallery { border-radius:14px;overflow:hidden; }
+  [id^="zh-quick-gallery-"] img { transition:transform .42s cubic-bezier(.22,.9,.25,1),filter .42s ease; }
+  [id^="zh-quick-gallery-"] img:hover { transform:scale(1.055);filter:saturate(1.06); }
+  .gradio-container textarea:hover,.gradio-container input:hover,.gradio-container [role="combobox"]:hover { border-color:#b9cbe6 !important; }
+  #zh-sidebar button:hover { transform:translateX(2px); }
+}
 @media(prefers-reduced-motion:reduce) { .zh-mode-card,.zh-mode-description { transition:none !important;transform:none !important; } }
+@media(prefers-reduced-motion:reduce) {
+  .gradio-container button,.zh-mode-icon,.zh-brand .zh-mark,[id^="zh-quick-gallery-"] img,
+  .zh-quick-preset-row button,#zh-sidebar button { transition:none !important; }
+  .gradio-container button:hover,.gradio-container button:active,.zh-mode-card:hover .zh-mode-icon,
+  .zh-brand:hover .zh-mark,[id^="zh-quick-gallery-"] img:hover { transform:none !important; }
+}
 """
 
 # A single disposable timer survives Gradio remounts without multiplying clocks.
@@ -185,16 +241,99 @@ DESKTOP_JS = r"""
   window.__zhiheng_visual_ready = false;
   let timer = 0, observer = null, observerTimeout = 0, disposed = false, root = null;
   const cleanups = [];
-  const listen = (target, name, callback) => {
-    target.addEventListener(name, callback);
-    cleanups.push(() => target.removeEventListener(name, callback));
+  const listen = (target, name, callback, options) => {
+    target.addEventListener(name, callback, options);
+    cleanups.push(() => target.removeEventListener(name, callback, options));
   };
   const stopObserver = () => {
     observer?.disconnect(); observer = null;
     clearTimeout(observerTimeout); observerTimeout = 0;
   };
+  // 指针高光：玻璃卡片上的柔光跟着鼠标走，离开即回中；一帧只更新一次，不触发重排风暴。
+  let spotFrame = 0, spotTarget = null, spotX = 0, spotY = 0;
+  const surface = node => (node instanceof Element ? node.closest('.zh-liquid,.zh-mode-card') : null);
+  const paintSpot = () => {
+    spotFrame = 0;
+    if (!spotTarget || !spotTarget.isConnected) return;
+    const box = spotTarget.getBoundingClientRect();
+    spotTarget.style.setProperty('--zh-mx', `${Math.round(spotX - box.left)}px`);
+    spotTarget.style.setProperty('--zh-my', `${Math.round(spotY - box.top)}px`);
+  };
+  const moveSpot = event => {
+    if (event.pointerType === 'touch') return;
+    const target = surface(event.target);
+    if (!target) return;
+    spotTarget = target; spotX = event.clientX; spotY = event.clientY;
+    if (!spotFrame) spotFrame = requestAnimationFrame(paintSpot);
+    // 模式卡再叠一层 1-2° 的 3D 倾斜：像实体卡片被鼠标压着转了一点。
+    if (target.classList.contains('zh-mode-card')) {
+      const box = target.getBoundingClientRect();
+      const px = (event.clientX - box.left) / box.width - 0.5;
+      const py = (event.clientY - box.top) / box.height - 0.5;
+      target.style.setProperty('--zh-ry', `${(px * 3.4).toFixed(2)}deg`);
+      target.style.setProperty('--zh-rx', `${(-py * 2.6).toFixed(2)}deg`);
+    }
+  };
+  const releaseSpot = event => {
+    const target = surface(event.target);
+    if (!target || (event.relatedTarget && target.contains(event.relatedTarget))) return;
+    target.style.setProperty('--zh-mx', '50%');
+    target.style.setProperty('--zh-my', '35%');
+    target.style.setProperty('--zh-rx', '0deg');
+    target.style.setProperty('--zh-ry', '0deg');
+  };
+  if (typeof document.addEventListener === 'function' && typeof requestAnimationFrame === 'function') {
+    listen(document, 'pointermove', moveSpot, {passive: true});
+    listen(document, 'pointerout', releaseSpot, {passive: true});
+  }
+  // 滚动入场：只在 IntersectionObserver 可用时开启，逐个错峰浮起；DOM 变了（切标签页）会重新扫描。
+  const REVEAL_SELECTOR = ['.zh-liquid-banner > .zh-liquid', '.zh-mode-card', '#zh-quick-inputs',
+                           '#zh-quick-visit', '#zh-quick-presets', '#zh-quick-actions', '#zh-quick-results'].join(',');
+  let revealObserver = null, revealScan = 0, revealWatch = null;
+  const revealNode = node => {
+    if (!(node instanceof Element) || node.dataset.zhReveal === '1') return;
+    node.dataset.zhReveal = '1';
+    node.classList.add('zh-reveal');
+    if (!revealObserver) { node.classList.add('zh-in'); return; }
+    const parent = node.parentElement;
+    if (parent) {
+      const siblings = Array.from(parent.children).filter(child => child.classList.contains('zh-reveal'));
+      node.style.transitionDelay = `${Math.min((siblings.length - 1) * 55, 275)}ms`;
+    }
+    revealObserver.observe(node);
+  };
+  const scanReveal = () => {
+    if (disposed) return;
+    document.querySelectorAll(REVEAL_SELECTOR).forEach(revealNode);
+  };
+  if (typeof IntersectionObserver === 'function') {
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('zh-in');
+        revealObserver.unobserve(entry.target);
+      });
+    }, {threshold: 0.06, rootMargin: '0px 0px -6% 0px'});
+    document.documentElement.setAttribute('data-zh-reveal', 'on');
+    scanReveal();
+    revealWatch = new MutationObserver(() => { clearTimeout(revealScan); revealScan = setTimeout(scanReveal, 70); });
+    revealWatch.observe(document.documentElement, {childList: true, subtree: true});
+    cleanups.push(() => {
+      revealWatch?.disconnect(); revealWatch = null;
+      clearTimeout(revealScan); revealScan = 0;
+      revealObserver?.disconnect(); revealObserver = null;
+      document.documentElement.removeAttribute('data-zh-reveal');
+      document.querySelectorAll('.zh-reveal').forEach(node => {
+        node.classList.remove('zh-reveal', 'zh-in');
+        node.style.transitionDelay = '';
+        delete node.dataset.zhReveal;
+      });
+    });
+  }
   const runtime = {dispose() {
     disposed = true; clearTimeout(timer); stopObserver();
+    if (spotFrame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(spotFrame);
+    spotFrame = 0; spotTarget = null;
     cleanups.splice(0).forEach(fn => fn());
     if (root) root.dataset.ready = 'false';
     window.__zhiheng_visual_ready = false;

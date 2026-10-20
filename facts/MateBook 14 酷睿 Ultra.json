@@ -1,0 +1,558 @@
+{
+ "version": 1,
+ "model": "HUAWEI MateBook 14 酷睿 Ultra",
+ "folder": "MateBook 14 酷睿 Ultra",
+ "category": "02-MateBook-Windows",
+ "library": "任德耀新建华为PC知识库/华为PC全板块深度知识库_v7",
+ "captured": "2026-10-17",
+ "urls": [
+  "https://consumer.huawei.com/cn/laptops/matebook-14-2024/",
+  "https://consumer.huawei.com/cn/laptops/matebook-14-2024/specs/"
+ ],
+ "positioning": "",
+ "selling_titles": [],
+ "source_note": "来源：华为官网公开产品页与规格页。抓取日期：2026-10-17。配置可能因销售版本而异，生成内容时必须保留限定条件并以实际销售版本为准。",
+ "fields": [
+  {
+   "section": "操作系统",
+   "name": "",
+   "values": [
+    {
+     "text": "Windows 11 家庭版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "Linux V20 版",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "Windows 11 家庭版\nLinux V20 版"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "宽度",
+   "values": [
+    {
+     "text": "312.6 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "宽度\n312.6 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "深度",
+   "values": [
+    {
+     "text": "226.8 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "深度\n226.8 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "高度",
+   "values": [
+    {
+     "text": "14.5 mm",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "高度\n14.5 mm"
+  },
+  {
+   "section": "尺寸与重量",
+   "name": "重量",
+   "values": [
+    {
+     "text": "1.31 kg",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+     ]
+    }
+   ],
+   "conditions": [
+    "实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+   ],
+   "quote": "重量\n1.31 kg\n*实际尺寸和重量依配置、制造工艺、测量方法的不同可能有所差异。"
+  },
+  {
+   "section": "屏幕",
+   "name": "尺寸",
+   "values": [
+    {
+     "text": "14.2 英寸",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "尺寸\n14.2 英寸"
+  },
+  {
+   "section": "屏幕",
+   "name": "类型",
+   "values": [
+    {
+     "text": "OLED",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "类型\nOLED"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏占比",
+   "values": [
+    {
+     "text": "91%",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏占比\n91%"
+  },
+  {
+   "section": "屏幕",
+   "name": "屏幕比例",
+   "values": [
+    {
+     "text": "3:2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "屏幕比例\n3:2"
+  },
+  {
+   "section": "屏幕",
+   "name": "分辨率",
+   "values": [
+    {
+     "text": "2880 × 1920，243 ppi",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "分辨率\n2880 × 1920，243 ppi"
+  },
+  {
+   "section": "屏幕",
+   "name": "亮度",
+   "values": [
+    {
+     "text": "450 尼特",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "亮度\n450 尼特"
+  },
+  {
+   "section": "屏幕",
+   "name": "色域",
+   "values": [
+    {
+     "text": "Adobe RGB / P3 / sRGB",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "P3",
+     "variant": "",
+     "label": "Linux V20 版",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "色域\nWindows 版：Adobe RGB / P3 / sRGB\nLinux V20 版：P3"
+  },
+  {
+   "section": "屏幕",
+   "name": "对比度",
+   "values": [
+    {
+     "text": "1000000:1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "对比度\n1000000:1"
+  },
+  {
+   "section": "屏幕",
+   "name": "触摸屏",
+   "values": [
+    {
+     "text": "多点触控触摸屏，最多支持 10 点触控",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "十点触控仅限 Windows 版本产品支持，Linux V20 版仅支持五点触控。",
+      "屏幕亮度、色域、对比度等数据为典型值。"
+     ]
+    }
+   ],
+   "conditions": [
+    "十点触控仅限 Windows 版本产品支持，Linux V20 版仅支持五点触控。",
+    "屏幕亮度、色域、对比度等数据为典型值。"
+   ],
+   "quote": "触摸屏\n多点触控触摸屏，最多支持 10 点触控\n*十点触控仅限 Windows 版本产品支持，Linux V20 版仅支持五点触控。\n*屏幕亮度、色域、对比度等数据为典型值。"
+  },
+  {
+   "section": "处理器",
+   "name": "",
+   "values": [
+    {
+     "text": "英特尔® 酷睿™ Ultra 7 155H 处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "仅限 Windows 版本产品搭载。"
+     ]
+    },
+    {
+     "text": "英特尔® 酷睿™ Ultra 5 125H 处理器",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "仅限 Windows 版本产品搭载。"
+     ]
+    }
+   ],
+   "conditions": [
+    "仅限 Windows 版本产品搭载。"
+   ],
+   "quote": "英特尔® 酷睿™ Ultra 7 155H 处理器\n*仅限 Windows 版本产品搭载。\n英特尔® 酷睿™ Ultra 5 125H 处理器"
+  },
+  {
+   "section": "存储",
+   "name": "",
+   "values": [
+    {
+     "text": "1 TB NVMe PCIe SSD",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "硬盘格式化之后的实际容量可能较小。"
+     ]
+    }
+   ],
+   "conditions": [
+    "硬盘格式化之后的实际容量可能较小。"
+   ],
+   "quote": "1 TB NVMe PCIe SSD\n*硬盘格式化之后的实际容量可能较小。"
+  },
+  {
+   "section": "内存",
+   "name": "",
+   "values": [
+    {
+     "text": "16 GB / 24 GB / 32 GB",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "16 GB / 24 GB / 32 GB"
+  },
+  {
+   "section": "无线连接",
+   "name": "WLAN",
+   "values": [
+    {
+     "text": "IEEE 802.11a/b/g/n/ac/ax，160 MHz",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2.4 GHz 和 5 GHz",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "2 × 2 MIMO",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "支持 WPA/WPA2/WPA3",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "WLAN\nIEEE 802.11a/b/g/n/ac/ax，160 MHz\n2.4 GHz 和 5 GHz\n2 × 2 MIMO\n支持 WPA/WPA2/WPA3"
+  },
+  {
+   "section": "无线连接",
+   "name": "蓝牙",
+   "values": [
+    {
+     "text": "蓝牙 5.1",
+     "variant": "",
+     "label": "Windows 版",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "蓝牙 4.2",
+     "variant": "",
+     "label": "Linux V20 版",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "蓝牙\nWindows 版：蓝牙 5.1\nLinux V20 版：蓝牙 4.2"
+  },
+  {
+   "section": "电池",
+   "name": "容量",
+   "values": [
+    {
+     "text": "70 Wh",
+     "variant": "",
+     "label": "",
+     "inline": "额定容量",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "容量\n70 Wh（额定容量）"
+  },
+  {
+   "section": "接口",
+   "name": "",
+   "values": [
+    {
+     "text": "USB-C 接口 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "全功能",
+     "conditions": []
+    },
+    {
+     "text": "USB3.2 Gen1 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "HDMI × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "3.5 mm 耳机 & 麦克风二合一接口 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "USB-C 接口 × 1（全功能）\nUSB3.2 Gen1 × 2\nHDMI × 1\n3.5 mm 耳机 & 麦克风二合一接口 × 1"
+  },
+  {
+   "section": "键盘和触控板",
+   "name": "全尺寸背光键盘",
+   "values": [
+    {
+     "text": "大尺寸触控板，支持多点触控",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "快捷键功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "快捷键功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "全尺寸背光键盘\n*快捷键功能仅限 Windows 版本产品支持。\n大尺寸触控板，支持多点触控"
+  },
+  {
+   "section": "摄像头",
+   "name": "",
+   "values": [
+    {
+     "text": "1080P 高清摄像头",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "1080P 高清摄像头"
+  },
+  {
+   "section": "音频",
+   "name": "",
+   "values": [
+    {
+     "text": "麦克风 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "扬声器 × 2",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "麦克风 × 2\n扬声器 × 2"
+  },
+  {
+   "section": "特色应用",
+   "name": "华为浏览器",
+   "values": [
+    {
+     "text": "热键 Fn + P 开启",
+     "variant": "",
+     "label": "高能模式/省电模式",
+     "inline": "",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "华为 F10 一键还原",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    },
+    {
+     "text": "显示管理",
+     "variant": "",
+     "label": "",
+     "inline": "护眼模式",
+     "conditions": [
+      "以上功能仅限 Windows 版本产品支持。"
+     ]
+    }
+   ],
+   "conditions": [
+    "以上功能仅限 Windows 版本产品支持。"
+   ],
+   "quote": "华为浏览器\n高能模式/省电模式：热键 Fn + P 开启\n华为 F10 一键还原\n显示管理（护眼模式）\n*以上功能仅限 Windows 版本产品支持。"
+  },
+  {
+   "section": "包装清单",
+   "name": "",
+   "values": [
+    {
+     "text": "PC × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "USB-C 电源适配器(适配器和充电线一体式连接) × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "快速指南 × 1",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "即将离开consumer.huawei.com",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    },
+    {
+     "text": "您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。",
+     "variant": "",
+     "label": "",
+     "inline": "",
+     "conditions": []
+    }
+   ],
+   "conditions": [],
+   "quote": "PC × 1\nUSB-C 电源适配器(适配器和充电线一体式连接) × 1\n快速指南 × 1\n即将离开consumer.huawei.com\n您即将跳转至第三方页面，华为无法控制，也无法对该页面内容负责。"
+  }
+ ]
+}

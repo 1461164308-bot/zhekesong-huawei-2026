@@ -64,6 +64,19 @@ console.log('clock runtime OK');
             self.assertIn(token, DESKTOP_CSS)
         self.assertIn('background:#fff !important', DESKTOP_CSS, 'input and dropdown surfaces must remain readable')
 
+    def test_pointer_micro_interactions_follow_cursor_and_respect_reduced_motion(self):
+        from visual_theme import DESKTOP_CSS, DESKTOP_JS
+        for token in ('@media (hover:hover)', 'transform:translateY(-1px)', 'transform:scale(1.055)',
+                      'transform:rotate(45deg)', 'transition:transform .16s ease'):
+            self.assertIn(token, DESKTOP_CSS, token)
+        for token in ('pointermove', 'pointerout', 'requestAnimationFrame', '--zh-mx', 'cancelAnimationFrame',
+                      '--zh-rx', '--zh-ry', 'IntersectionObserver', 'data-zh-reveal', 'zh-reveal'):
+            self.assertIn(token, DESKTOP_JS, token)
+        for token in ('rotateX(var(--zh-rx', 'rotateY(var(--zh-ry', 'data-zh-reveal=\"on\"', 'translate:0 12px'):
+            self.assertIn(token, DESKTOP_CSS, token)
+        self.assertIn('@media(prefers-reduced-motion:reduce)', DESKTOP_CSS)
+        self.assertIn('transition:none !important', DESKTOP_CSS, '减弱动效时必须关掉过渡')
+
     def test_header_restores_accessible_clock_and_date_without_duplicate_steps(self):
         elements = ThemeElements(DESKTOP_HTML).elements
         for attribute in ('data-zh-date', 'data-zh-hours', 'data-zh-minutes', 'data-zh-seconds'):
