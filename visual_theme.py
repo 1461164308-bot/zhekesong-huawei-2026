@@ -232,6 +232,67 @@ html[data-zh-reveal="on"] .zh-reveal.zh-in { opacity:1;translate:0 0;
   .gradio-container button:hover,.gradio-container button:active,.zh-mode-card:hover .zh-mode-icon,
   .zh-brand:hover .zh-mark,[id^="zh-quick-gallery-"] img:hover { transform:none !important; }
 }
+/* Shared reading rhythm: text surfaces need their own inset, even when Gradio hides the container. */
+.gradio-container {
+  --zh-copy-size:14px;
+  --zh-copy-leading:1.8;
+  --zh-text-inset:20px;
+  --body-text-size:14px;
+  --block-label-text-size:13px;
+}
+.gradio-container .block:has(> [data-testid="markdown-wrapper"]) {
+  box-sizing:border-box;
+  padding:16px var(--zh-text-inset) !important;
+  border-radius:14px !important;
+}
+.gradio-container [data-testid="markdown-wrapper"] .prose {
+  font-size:var(--zh-copy-size);
+  line-height:var(--zh-copy-leading);
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.gradio-container [data-testid="markdown-wrapper"] :is(h1,h2,h3,h4) {
+  line-height:1.5;
+  letter-spacing:.015em;
+  font-weight:650;
+  text-wrap:pretty;
+}
+.gradio-container [data-testid="markdown-wrapper"] h2 { font-size:24px;margin:0 0 12px; }
+.gradio-container [data-testid="markdown-wrapper"] h3 { font-size:19px;margin:22px 0 10px; }
+.gradio-container [data-testid="markdown-wrapper"] p { margin:0 0 12px; }
+.gradio-container [data-testid="markdown-wrapper"] :is(ul,ol) { padding-inline-start:1.5em;margin:12px 0; }
+.gradio-container [data-testid="markdown-wrapper"] li { margin:5px 0; }
+.gradio-container [data-testid="markdown-wrapper"] .md > :first-child { margin-top:0 !important; }
+.gradio-container [data-testid="markdown-wrapper"] .md > :last-child { margin-bottom:0 !important; }
+/* Panels already provide an inset: avoid a second white tile touching its own rounded corners. */
+:is(#zh-sidebar,#zh-simple-brief,#zh-simple-conversation,#zh-simple-result,[id^="zh-page-"])
+  > .block:has(> [data-testid="markdown-wrapper"]) {
+  background:transparent !important;
+  border-color:transparent !important;
+  padding:0 !important;
+}
+.zh-mode-card .block:has(> .html-container) { background:transparent !important;border:0 !important; }
+.zh-mode-card h3 { font-size:25px !important;line-height:1.45;margin:18px 0 10px !important; }
+.zh-mode-tagline { font-size:14px;line-height:1.8; }
+.zh-mode-description { line-height:1.85;margin:16px 0 14px; }
+.gradio-container textarea { font-size:14px !important;line-height:1.75 !important;padding:12px 14px !important; }
+.gradio-container input { font-size:14px !important;line-height:1.6 !important; }
+.gradio-container label > span { line-height:1.6 !important; }
+#zh-mode-label { padding:0 !important; }
+#zh-quick-body { gap:18px !important; }
+#zh-quick-presets { gap:10px !important; }
+#zh-quick-presets-hint { padding:12px 16px !important; }
+#zh-footer { padding:12px 20px !important;line-height:1.8; }
+@media(max-width:760px) {
+  .gradio-container { --zh-text-inset:16px; }
+  .gradio-container .block:has(> [data-testid="markdown-wrapper"]) { padding:14px var(--zh-text-inset) !important; }
+  .gradio-container [data-testid="markdown-wrapper"] h2 { font-size:21px; }
+  .gradio-container [data-testid="markdown-wrapper"] h3 { font-size:18px; }
+  :is(#zh-sidebar,#zh-simple-brief,#zh-simple-conversation,#zh-simple-result,[id^="zh-page-"])
+    > .block:has(> [data-testid="markdown-wrapper"]),#zh-mode-label { padding:0 !important; }
+  .zh-mode-card h3 { font-size:23px !important; }
+  #zh-footer { padding:12px 16px !important; }
+}
 """
 
 # A single disposable timer survives Gradio remounts without multiplying clocks.
